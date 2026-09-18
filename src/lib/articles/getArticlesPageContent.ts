@@ -59,7 +59,7 @@ function linkValue(value: string | null | undefined, fallback: string): string {
 
 function mapArticlesPageFromCms(
   doc: CmsArticlesPage | null | undefined,
-): Omit<ArticlesPageCmsContent, 'articles'> {
+): Omit<ArticlesPageCmsContent, 'articles' | 'categories'> {
   const defaults = articlesPageDefaults
   if (!doc) {
     const { articles: _articles, ...rest } = defaults
