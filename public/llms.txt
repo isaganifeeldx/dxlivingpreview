@@ -1,0 +1,127 @@
+# DX Living
+
+> DX Living is an Australian project control specialist firm that combines project planning with immersive visualisation to de-risk high-end residential projects before construction begins. Based in Scoresby, Victoria, and operating across Australia, DX Living turns drawings and BIM data into 3D, 4D, interactive and VR environments so developers, architects, custom builders, suppliers and homeowners can review layout, sequencing and real supplier finishes, then decide with certainty rather than assumption. DX Living is the high-end residential division of FeelDX.
+
+## What DX Living is and is not
+
+- DX Living **is** a project control specialist firm: project planning (programme of works, 4D sequencing, plan-versus-actual) combined with visualisation (3D, 4D, interactive models, renders, flythroughs, VR).
+- DX Living **is not** an architecture practice, a project management firm, a builder or contractor, or an interior design studio. It does not design homes, manage projects or build them.
+- The purpose of every output is de-risking: fewer late design changes, fewer construction variations, better budget predictability and clearer stakeholder alignment before work starts.
+
+## Core pages
+
+- [Home](https://dxliving.com/): Overview of DX Living, the four modules, project gallery and how immersive visualisation supports pre-construction decisions.
+- [About](https://dxliving.com/about): Why DX Living exists and how planning plus visualisation serves developers, architects, custom builders, suppliers, homeowners and investors.
+- [Modules](https://dxliving.com/modules): The four service modules (DX Studio, DX Interiors, DX Models, DX Prestige), who each is for and how they combine.
+- [FAQ](https://dxliving.com/faq): Authoritative answers on what DX Living does, BIM integration, VR delivery, project suitability, engagement process and scoping.
+- [Projects](https://dxliving.com/projects): Residential projects visualised and sequenced for clients, showing light, proportion, materiality and atmosphere.
+- [Suppliers](https://dxliving.com/suppliers): How material and product suppliers have their finishes represented inside models for pre-construction review.
+- [Contact](https://dxliving.com/contact): Discovery call bookings and direct enquiries.
+
+## Modules
+
+- [DX Studio](https://dxliving.com/studio): The core planning and visualisation module. Converts drawings and BIM data into immersive 3D and 4D environments that show scale, flow, design intent and construction sequencing. Used by architects, custom builders and developers during early design and planning.
+- [DX Interiors](https://dxliving.com/interiors): Real material and finish visualisation. Tiles, stone, cabinetry, lighting, furniture and appliances shown at full scale inside the model, with real-time swapping and side-by-side option comparison so selections are locked once rather than revisited on site.
+- [DX Models](https://dxliving.com/model): Interactive presentation and sales module for off-the-plan sales, display suites, buyer walkthroughs and configuration experiences, with VR-compatible navigation.
+- [DX Prestige](https://dxliving.com/prestige): The unified top tier combining DX Studio, DX Interiors and DX Models into one coordinated workflow for complex, high-value residential projects.
+
+## Interactive tools
+
+- [Start Interactive](https://dxliving.com/start-interactive): Entry point to the interactive visualisation experience.
+- [Apply](https://dxliving.com/apply): Application pathway for projects and partners.
+
+## Featured projects
+
+- [251 Station Street](https://dxliving.com/projects/251-station-st): Edithvale, Victoria. Luxury residence visualised across materials, interiors, landscape and staged construction sequencing.
+- [20 Head Street](https://dxliving.com/projects/20-head-street)
+- [85 Commodore Drive, Surfers Paradise](https://dxliving.com/projects/85-commodore-drive)
+- [813 Clarendon Street](https://dxliving.com/projects/813-clarendon-street)
+- [31 McIlwain Drive](https://dxliving.com/projects/31-mcilwain-drive)
+- [Nagambie Project](https://dxliving.com/projects/nagambie-project)
+
+## Articles: project planning and project control
+
+- [Project controls for luxury residential construction](https://dxliving.com/articles/project-controls-for-luxury-residential-construction)
+- [Project management construction for luxury residential projects](https://dxliving.com/articles/project-management-construction-for-luxury-residential-projects)
+- [Project management and cost control: From plan to profit](https://dxliving.com/articles/project-management-and-cost-control)
+- [Project cost management using BIM and digital twins](https://dxliving.com/articles/project-cost-management-using-bim-and-digital-twins)
+- [How a construction program reduces delays and design conflicts](https://dxliving.com/articles/how-a-construction-program-reduces-delays-and-design-conflicts)
+- [How quality management in projects improves project delivery](https://dxliving.com/articles/how-quality-management-in-projects-improves-project-delivery)
+- [Project and quality management: Best practices for 2026 projects](https://dxliving.com/articles/best-practices-for-project-and-quality-management-in-2026)
+- [Construction program management software: A practical guide for AEC](https://dxliving.com/articles/construction-program-management-software)
+- [From takeoff to tender: Program for construction estimates explained](https://dxliving.com/articles/program-for-construction-estimates-explained)
+
+## Articles: BIM and digital construction
+
+- [What is BIM 3D modeling? A practical guide for AEC teams](https://dxliving.com/articles/what-is-bim-3d-modeling)
+- [BIM 3D 4D 5D explained: What is the real difference?](https://dxliving.com/articles/bim-3d-4d-5d-explained)
+- [BIM 3D: From design intent to site certainty in 2026](https://dxliving.com/articles/bim-3d-from-design-to-site-in-2026)
+- [BIM Australia: 9 implementation mistakes that erode project value](https://dxliving.com/articles/bim-australia-9-implementation-mistakes)
+- [BIM for architects Australia in custom home design](https://dxliving.com/articles/bim-for-architects-australia-in-custom-home-design)
+- [How 3D coordination reduces design conflicts before construction](https://dxliving.com/articles/how-3d-coordination-reduces-design-conflicts-before-construction)
+- [How pre-construction visualisation improves construction readiness](https://dxliving.com/articles/pre-construction-visualisation-construction-readiness)
+
+## Articles: visualisation and rendering
+
+- [Architectural visualisation Melbourne for project decisions](https://dxliving.com/articles/architectural-visualisation-melbourne-project-decisions)
+- [Architectural rendering Melbourne for pre-construction planning](https://dxliving.com/articles/architectural-rendering-melbourne-pre-construction-planning)
+- [How 3D rendering Melbourne improves pre-construction planning](https://dxliving.com/articles/3d-rendering-melbourne-pre-construction-planning)
+- [Choosing a 3D rendering company Melbourne for your project](https://dxliving.com/articles/3d-rendering-company-melbourne)
+- [How Melbourne developers use photorealistic rendering before construction](https://dxliving.com/articles/photorealistic-rendering-melbourne-developers)
+- [3D rendering Sydney for luxury residential projects](https://dxliving.com/articles/3d-rendering-sydney)
+- [3D rendering Brisbane for luxury residential projects](https://dxliving.com/articles/3d-rendering-brisbane)
+- [3D rendering Perth for luxury residential projects](https://dxliving.com/articles/3d-rendering-perth)
+- [3D rendering Adelaide for luxury residential projects](https://dxliving.com/articles/3d-rendering-adelaide)
+- [3D floor plan Melbourne for home design clarity](https://dxliving.com/articles/3d-floor-plan-melbourne-home-design-clarity)
+- [3D house design guide: From sketch to walkthrough](https://dxliving.com/articles/3d-house-design-guide)
+- [Custom home visualisation timeline: From concept to completion](https://dxliving.com/articles/custom-home-visualisation-timeline)
+- [The risk of cheap architectural renders](https://dxliving.com/articles/the-risk-of-cheap-architectural-renders)
+- [Project 251 luxury home visualisation overview](https://dxliving.com/articles/project-251-visualisation-overview)
+
+## Articles: VR and immersive experience
+
+- [How virtual reality is shaping the future of home design in Australia](https://dxliving.com/articles/virtual-reality-in-australia-home-design)
+- [Step inside before it is built: Virtual reality home walkthrough](https://dxliving.com/articles/virtual-reality-home-walkthrough)
+- [6 benefits of using VR technology for better project visualisation](https://dxliving.com/articles/6-benefits-of-using-vr-technology)
+- [VR vs 360 degree in Australian property decisions](https://dxliving.com/articles/vr-vs-360-in-australian-property-decisions)
+- [Why luxury home builders Melbourne use VR and BIM](https://dxliving.com/articles/luxury-home-builders-melbourne-vr-bim)
+- [Why luxury home builders Sydney use VR and BIM](https://dxliving.com/articles/luxury-home-builders-sydney)
+- [Custom home builders Melbourne and 3D visualisation](https://dxliving.com/articles/custom-home-builders-melbourne-3d-visualisation)
+- [Custom home builders Sydney and 3D visualisation](https://dxliving.com/articles/custom-home-builders-sydney)
+- [How 3D configurators increase buyer commitment](https://dxliving.com/articles/how-3d-configurators-increase-buyer-commitment)
+
+## Articles: choosing a builder
+
+- [Choosing the best home builder to protect long-term property value](https://dxliving.com/articles/choosing-the-best-home-builder)
+- [How to identify quality home builders and avoid costly mistakes](https://dxliving.com/articles/how-to-identify-quality-home-builders)
+- [Custom home builders vs project builders: Which offers better long-term value?](https://dxliving.com/articles/custom-home-builders-vs-project-builders)
+- [Why custom home builders Melbourne need pre-build clarity](https://dxliving.com/articles/custom-home-builders-melbourne-pre-build-clarity)
+- [Custom built homes Melbourne checklist](https://dxliving.com/articles/custom-built-homes-melbourne-checklist)
+- [How to compare the best home builders Adelaide before you sign](https://dxliving.com/articles/the-best-home-builders-adelaide)
+- [Brisbane custom home builders checklist for clients](https://dxliving.com/articles/brisbane-custom-home-builders-checklist-for-clients)
+- [How to choose custom home builders in South Australia](https://dxliving.com/articles/how-to-choose-custom-home-builders-in-south-australia)
+
+## Articles: materials, finishes and costs
+
+- [Interior finishes to review before building](https://dxliving.com/articles/interior-finishes)
+- [Timber flooring and composite decking: Compare before you choose](https://dxliving.com/articles/timber-flooring-composite-decking)
+- [Kitchen renovation cost Melbourne: Budget, materials and what to lock in early](https://dxliving.com/articles/kitchen-renovation-cost-melbourne)
+- [Bathroom remodel cost in Australia: A 2026 budget guide](https://dxliving.com/articles/bathroom-remodel-cost-australia)
+- [Luxury home cinema design: What actually makes a room cinematic](https://dxliving.com/articles/luxury-home-cinema-design)
+- [Outdoor living and alfresco design for luxury homes](https://dxliving.com/articles/outdoor-living-alfresco-design)
+- [Landscape and garden design for luxury homes](https://dxliving.com/articles/landscape-design-melbourne)
+- [How 3D design helps plan a Melbourne house renovation](https://dxliving.com/articles/house-renovation-3d-design-melbourne)
+
+## Articles: residential design guides
+
+- [Modern house design 2026: 10 trends shaping homes](https://dxliving.com/articles/modern-house-design-2026-10-trends-shaping-homes)
+- [Contemporary houses: A practical guide to design, costs and planning](https://dxliving.com/articles/contemporary-houses-a-practical-guide)
+- [Duplex house design in Australia: Visual clarity, acoustic calm and 4D delivery](https://dxliving.com/articles/duplex-house-design-in-australia)
+- [Step inside 6 home design trends shaping Australia in 2026](https://dxliving.com/articles/step-inside-6-home-design-trends-shaping-australia-in-2026)
+
+## Optional
+
+- [Full context file for AI systems](https://dxliving.com/llms-full.txt): Extended reference with entity data, module detail, capability lists, comparison against traditional rendering services and full FAQ.
+- [Privacy Policy](https://dxliving.com/privacy-policy)
+- [Terms of Service](https://dxliving.com/terms-of-service)
+- [XML sitemap](https://dxliving.com/sitemap.xml)

@@ -1,0 +1,279 @@
+/* Payload admin custom styles — login + create-first-user */
+
+/* Recolor the white login mark so it reads on the light auth surface. */
+.dxl-login-logo {
+  background-color: #1e293b !important;
+  filter: none !important;
+}
+
+/*
+ * Force a light auth surface even when the admin theme is dark.
+ * Override theme tokens so labels/links that use --theme-* stay readable.
+ */
+html[data-theme] .template-minimal,
+.template-minimal {
+  --theme-bg: #ffffff;
+  --theme-input-bg: #ffffff;
+  --theme-text: #111827;
+  --theme-elevation-0: #ffffff;
+  --theme-elevation-50: #f8fafc;
+  --theme-elevation-100: #f1f5f9;
+  --theme-elevation-150: #e2e8f0;
+  --theme-elevation-200: #e2e8f0;
+  --theme-elevation-250: #cbd5e1;
+  --theme-elevation-300: #cbd5e1;
+  --theme-elevation-400: #94a3b8;
+  --theme-elevation-500: #64748b;
+  --theme-elevation-600: #475569;
+  --theme-elevation-700: #334155;
+  --theme-elevation-800: #1e293b;
+  --theme-elevation-900: #111827;
+  --theme-elevation-1000: #0f172a;
+  --theme-border-color: #cbd5e1;
+
+  background: #ffffff !important;
+  color: #111827 !important;
+  color-scheme: light;
+}
+
+/* Explicit label color (covers dark-theme field-label rules) */
+html[data-theme] .template-minimal .field-label,
+html[data-theme] .template-minimal label,
+html[data-theme] .login__form .field-label,
+html[data-theme] .login__form label,
+.template-minimal .field-label,
+.template-minimal label,
+.login__form .field-label,
+.login__form label {
+  color: #111827 !important;
+}
+
+.template-minimal,
+.login__form {
+  color: #111827 !important;
+}
+
+.template-minimal a,
+.login a {
+  color: #2563eb !important;
+}
+
+/* Email & password fields: white fill + grey border */
+html[data-theme] .template-minimal input[type='email'],
+html[data-theme] .template-minimal input[type='password'],
+html[data-theme] .template-minimal input[type='text'],
+html[data-theme] .login__form input[type='email'],
+html[data-theme] .login__form input[type='password'],
+html[data-theme] .login__form input#field-email,
+html[data-theme] .login__form input#field-password,
+.template-minimal input[type='email'],
+.template-minimal input[type='password'],
+.template-minimal input[type='text'],
+.login__form input[type='email'],
+.login__form input[type='password'],
+.login__form input#field-email,
+.login__form input#field-password {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #111827 !important;
+  box-shadow: none !important;
+  color-scheme: light;
+}
+
+/* Chrome/Edge autofill can override background unless we paint a shadow fill */
+.template-minimal input:-webkit-autofill,
+.login__form input[type='email']:-webkit-autofill,
+.login__form input[type='password']:-webkit-autofill,
+.login__form input#field-email:-webkit-autofill,
+.login__form input#field-password:-webkit-autofill {
+  -webkit-text-fill-color: #111827 !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  border: 1px solid #cbd5e1 !important;
+  transition: background-color 99999s ease-out;
+}
+
+.template-minimal input::placeholder,
+.login__form input[type='email']::placeholder,
+.login__form input[type='password']::placeholder {
+  color: #6b7280 !important;
+}
+
+.template-minimal input:focus,
+.login__form input[type='email']:focus,
+.login__form input[type='password']:focus,
+.login__form input#field-email:focus,
+.login__form input#field-password:focus {
+  outline: none;
+  border-color: #94a3b8 !important;
+  box-shadow: none !important;
+}
+
+/*
+ * Empty modal container can sit over create-first-user and block clicks.
+ * Allow interaction with the form while no modal content is open.
+ */
+.template-minimal .payload__modal-container:not(:has(.payload__modal, .drawer)) {
+  pointer-events: none !important;
+}
+
+/*
+ * Lexical experimental tables default to COLUMN_WIDTH=75px + width:fit-content,
+ * which makes new tables look ~225–375px wide. Stretch them to the editor.
+ */
+.LexicalEditorTheme__tableScrollableWrapper {
+  width: 100%;
+  max-width: 100%;
+  margin-right: 0;
+}
+
+.LexicalEditorTheme__table {
+  width: 100% !important;
+  max-width: 100%;
+  table-layout: fixed !important;
+}
+
+.LexicalEditorTheme__table colgroup col {
+  width: auto !important;
+}
+
+/*
+ * Match frontend article H2–H6 spacing so editors don't add blank
+ * paragraphs to recreate the gap they see on the live page.
+ * (Overrides Lexical's default margin-block on headings.)
+ */
+.ContentEditable__root .LexicalEditorTheme__h2,
+.ContentEditable__root .LexicalEditorTheme__h3,
+.ContentEditable__root .LexicalEditorTheme__h4,
+.ContentEditable__root .LexicalEditorTheme__h5,
+.ContentEditable__root .LexicalEditorTheme__h6 {
+  margin-block: 0 !important;
+  line-height: 1.35;
+}
+
+.ContentEditable__root .LexicalEditorTheme__h2 {
+  padding-top: 1.25rem;
+  padding-bottom: 0.5rem;
+}
+
+.ContentEditable__root .LexicalEditorTheme__h3 {
+  padding-top: 1rem;
+  padding-bottom: 0.4rem;
+}
+
+.ContentEditable__root .LexicalEditorTheme__h4 {
+  padding-top: 0.875rem;
+  padding-bottom: 0.35rem;
+}
+
+.ContentEditable__root .LexicalEditorTheme__h5 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.3rem;
+}
+
+.ContentEditable__root .LexicalEditorTheme__h6 {
+  padding-top: 0.75rem;
+  padding-bottom: 0.3rem;
+}
+
+.ContentEditable__root > .LexicalEditorTheme__h2:first-child,
+.ContentEditable__root > .LexicalEditorTheme__h3:first-child,
+.ContentEditable__root > .LexicalEditorTheme__h4:first-child,
+.ContentEditable__root > .LexicalEditorTheme__h5:first-child,
+.ContentEditable__root > .LexicalEditorTheme__h6:first-child {
+  padding-top: 0;
+}
+
+@media (min-width: 640px) {
+  .ContentEditable__root .LexicalEditorTheme__h2 {
+    padding-top: 2rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .ContentEditable__root .LexicalEditorTheme__h3 {
+    padding-top: 1.5rem;
+    padding-bottom: 0.6rem;
+  }
+
+  .ContentEditable__root .LexicalEditorTheme__h4 {
+    padding-top: 1.25rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .ContentEditable__root .LexicalEditorTheme__h5 {
+    padding-top: 1rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .ContentEditable__root .LexicalEditorTheme__h6 {
+    padding-top: 1rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .ContentEditable__root > .LexicalEditorTheme__h2:first-child,
+  .ContentEditable__root > .LexicalEditorTheme__h3:first-child,
+  .ContentEditable__root > .LexicalEditorTheme__h4:first-child,
+  .ContentEditable__root > .LexicalEditorTheme__h5:first-child,
+  .ContentEditable__root > .LexicalEditorTheme__h6:first-child {
+    padding-top: 0;
+  }
+}
+
+/*
+ * Match frontend article images: full width + same vertical spacing.
+ * Lexical caps landscape uploads at 450px by default.
+ */
+.ContentEditable__root .LexicalEditorTheme__upload {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin-block: 1.5rem !important;
+  margin-inline: 0 !important;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.ContentEditable__root .LexicalEditorTheme__upload img,
+.ContentEditable__root .LexicalEditorTheme__upload svg,
+.ContentEditable__root .LexicalEditorTheme__upload__contents--landscape img,
+.ContentEditable__root .LexicalEditorTheme__upload__contents--landscape svg,
+.ContentEditable__root .LexicalEditorTheme__upload__contents--portrait img,
+.ContentEditable__root .LexicalEditorTheme__upload__contents--portrait svg {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  display: block;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.ContentEditable__root > .LexicalEditorTheme__upload:first-child {
+  margin-top: 0 !important;
+}
+
+.ContentEditable__root > img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
+}
+
+@media (min-width: 640px) {
+  .ContentEditable__root .LexicalEditorTheme__upload {
+    margin-block: 2.5rem !important;
+  }
+
+  .ContentEditable__root > .LexicalEditorTheme__upload:first-child {
+    margin-top: 0 !important;
+  }
+
+  .ContentEditable__root > img {
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+  }
+}
