@@ -1,6 +1,5 @@
 import { cache } from 'react'
 import { shouldSkipCmsAtBuild } from '@/lib/cms/buildTime'
-import { getPayloadClient } from '@/lib/payload'
 import { mapCmsSeo, type CmsSeo } from '@/lib/seo/mapCmsSeo'
 import { aboutPageDefaults, ABOUT_ANCHOR_SECTION_IDS, FALLBACK_ABOUT_CONTENT } from './defaults'
 import type { AboutAnchorMenuItem, AboutPageCmsContent } from './types'
@@ -108,6 +107,9 @@ export const getAboutPageContent = cache(async (): Promise<AboutPageCmsContent> 
   if (shouldSkipCmsAtBuild()) return aboutPageDefaults
 
   try {
+    // Dynamic import keeps Payload/pg out of the Vercel build skip path so a
+    // malformed DATABASE_URI cannot throw ERR_INVALID_URL during page-data collection.
+    const { getPayloadClient } = await import('@/lib/payload')
     const payload = await getPayloadClient()
     const doc = (await payload.findGlobal({
       slug: 'about',

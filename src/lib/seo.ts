@@ -4,8 +4,16 @@ import { getSiteUrl, isSearchIndexingEnabled } from '@/lib/siteUrl';
 const siteUrl = getSiteUrl();
 const allowIndexing = isSearchIndexingEnabled();
 
+function safeMetadataBase(url: string): URL | undefined {
+  try {
+    return new URL(url);
+  } catch {
+    return undefined;
+  }
+}
+
 export const defaultMetadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  ...(safeMetadataBase(siteUrl) ? { metadataBase: safeMetadataBase(siteUrl) } : {}),
   title: {
     default: 'DX Living',
     template: '%s | DX Living',

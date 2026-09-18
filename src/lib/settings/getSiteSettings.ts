@@ -1,6 +1,5 @@
 import { cache } from 'react'
 import { shouldSkipCmsAtBuild } from '@/lib/cms/buildTime'
-import { getPayloadClient } from '@/lib/payload'
 import {
   siteSettingsDefaults,
   type FloatingCtaAction,
@@ -197,6 +196,7 @@ export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => {
   if (shouldSkipCmsAtBuild()) return siteSettingsDefaults
 
   try {
+    const { getPayloadClient } = await import('@/lib/payload')
     const payload = await getPayloadClient()
     const doc = (await payload.findGlobal({
       slug: 'settings',

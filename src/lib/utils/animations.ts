@@ -2838,7 +2838,9 @@ export const usePageTransition = (
         transition.kill();
       }
     };
-  }, []); // Empty dependency array - run only once on mount
+    // Mount-only: page transitions must not re-fire when props identity changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional once-per-mount
+  }, []);
 }; 
 
 /* Text Slider functionality */

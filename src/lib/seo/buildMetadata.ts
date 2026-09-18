@@ -2,9 +2,24 @@ import type { Metadata } from 'next'
 import { getSiteUrl, isSearchIndexingEnabled } from '@/lib/siteUrl'
 import type { SeoData } from './types'
 
-function toAbsoluteUrl(urlOrPath: string, siteUrl: string): string {
-  if (/^https?:\/\//i.test(urlOrPath)) return urlOrPath
-  return `${siteUrl}${urlOrPath.startsWith('/') ? '' : '/'}${urlOrPath}`
+function isValidHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+function toAbsoluteUrl(urlOrPath: string, siteUrl: string): string | null {
+  const trimmed = urlOrPath.trim()
+  if (!trimmed) return null
+
+  const absolute = /^https?:\/\//i.test(trimmed)
+    ? trimmed
+    : `${siteUrl}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`
+
+  return isValidHttpUrl(absolute) ? absolute : null
 }
 
 type BuildMetadataOptions = {
@@ -49,17 +64,22 @@ export function buildMetadataFromSeo({
   const siteUrl = getSiteUrl()
   const title = seo.title || fallbackTitle
   const description = seo.description || fallbackDescription
-  const canonical = seo.canonicalUrl
-    ? toAbsoluteUrl(seo.canonicalUrl, siteUrl)
-    : `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+  const pathCanonical = `${siteUrl}${path.startsWith('/') ? path : `/${path}`}`
+  const canonical =
+    (seo.canonicalUrl ? toAbsoluteUrl(seo.canonicalUrl, siteUrl) : null) ||
+    pathCanonical
 
   const ogTitle = seo.ogTitle || title
   const ogDescription = seo.ogDescription || description
-  const ogImage = seo.ogImageUrl || fallbackImageUrl
+  const ogImageRaw = seo.ogImageUrl || fallbackImageUrl
+  const ogImage = ogImageRaw ? toAbsoluteUrl(ogImageRaw, siteUrl) : null
 
   const twitterTitle = seo.twitterTitle || ogTitle
   const twitterDescription = seo.twitterDescription || ogDescription
-  const twitterImage = seo.twitterImageUrl || ogImage
+  const twitterImageRaw = seo.twitterImageUrl || ogImageRaw
+  const twitterImage = twitterImageRaw
+    ? toAbsoluteUrl(twitterImageRaw, siteUrl)
+    : null
 
   const keywords = [
     seo.focusKeyword,
@@ -98,7 +118,7 @@ export function buildMetadataFromSeo({
         ? {
             images: [
               {
-                url: toAbsoluteUrl(ogImage, siteUrl),
+                url: ogImage,
                 alt: ogTitle,
               },
             ],
@@ -111,7 +131,7 @@ export function buildMetadataFromSeo({
       description: twitterDescription,
       ...(twitterImage
         ? {
-            images: [toAbsoluteUrl(twitterImage, siteUrl)],
+            images: [twitterImage],
           }
         : {}),
     },
