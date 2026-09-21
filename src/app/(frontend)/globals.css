@@ -604,6 +604,20 @@ body.transitioning {
   overflow: hidden;
 }
 
+/*
+ * 404: start entrance animations hidden before JS runs.
+ * text-reveal uses clip-path (not opacity), so without this the heading
+ * paints fully, then GSAP hides it, then reveals — visible flash.
+ */
+.not-found-page [data-animation='fade'],
+.not-found-page [data-animation='text-split'] {
+  opacity: 0;
+}
+
+.not-found-page [data-animation='text-reveal'] {
+  clip-path: inset(0 100% 0 0);
+}
+
 /* Parallax styles */
 .parallax-bg {
   position: absolute;

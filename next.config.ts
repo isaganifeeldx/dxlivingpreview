@@ -24,6 +24,8 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['gsap'],
   htmlLimitedBots: /.*/,
   experimental: {
+    // Required for a custom 404 with multiple root layouts (`(frontend)` / `(payload)`).
+    globalNotFound: true,
     serverActions: {
       allowedOrigins: siteActionOrigins(),
     },

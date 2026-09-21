@@ -1,9 +1,14 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import AnimatedButton from '@/components/ui/AnimatedButton'
-import { usePageAnimations } from '@/lib/utils/animations'
+import {
+  preparePageAnimationElements,
+  prefersReducedMotion,
+  revealAllAnimatedElements,
+  usePageAnimations,
+} from '@/lib/utils/animations'
 import { LOGO_FILL_DARK, LOGO_FILL_LIGHT, setLogoFill } from '@/lib/utils/logoColor'
 
 export type NotFoundPageContentProps = {
@@ -24,6 +29,19 @@ export default function NotFoundPageContent({
   ctaHref,
 }: NotFoundPageContentProps) {
   const router = useRouter()
+  const rootRef = useRef<HTMLDivElement>(null)
+
+  // Hide before paint so content never flashes visible → hidden → animate
+  // (text-reveal uses clip-path, so opacity-0 alone is not enough).
+  useLayoutEffect(() => {
+    const root = rootRef.current
+    if (!root) return
+    if (prefersReducedMotion()) {
+      revealAllAnimatedElements(root)
+      return
+    }
+    preparePageAnimationElements(root)
+  }, [])
 
   usePageAnimations(false)
 
@@ -47,7 +65,7 @@ export default function NotFoundPageContent({
   }
 
   return (
-    <div className="min-h-screen page-content">
+    <div ref={rootRef} className="min-h-screen page-content not-found-page">
       <section className="min-h-screen bg-white py-16 md:py-24 white-bg-section flex items-center justify-center">
         <div className="max-w-4xl mx-auto px-8 text-center">
           <h1
@@ -88,9 +106,7 @@ export default function NotFoundPageContent({
           <div data-animation="fade" data-delay="1.6" data-duration="1.0">
             <AnimatedButton
               onClick={handleGoHome}
-              dataAnimation="fade"
-              dataDelay="0.1"
-              dataDuration="0.8"
+              skipEntranceAnimation
               className="button white-bg text-sm m-auto z-50 uppercase"
             >
               {ctaLabel}
