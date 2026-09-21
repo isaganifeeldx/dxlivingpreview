@@ -22,12 +22,51 @@ import type { Payload } from 'payload'
 import {
   LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG,
 } from '../src/lib/articles/categoryDefs'
+import { getMediaStorageMode } from '../src/lib/cms/mediaStorage'
 
 loadDotenv({ path: '.env.local', quiet: true })
 loadDotenv({ path: '.env', quiet: true })
 
 const require = createRequire(import.meta.url)
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
+
+function databaseLooksRemote(uri: string): boolean {
+  if (!uri) return false
+  try {
+    const host = new URL(uri).hostname.toLowerCase()
+    if (!host || host === 'localhost' || host === '127.0.0.1') return false
+    return true
+  } catch {
+    return /neon\.tech|amazonaws\.com|supabase\.co|railway|render\.com/i.test(uri)
+  }
+}
+
+function assertSeedStorageSafe(): void {
+  const mode = getMediaStorageMode()
+  const dbUri = (process.env.DATABASE_URI || '').trim()
+
+  if (mode !== 'local') {
+    console.log(`Media storage mode: ${mode}`)
+    return
+  }
+
+  if (!databaseLooksRemote(dbUri)) {
+    console.log('Media storage mode: local (ok for local Postgres)')
+    return
+  }
+
+  throw new Error(
+    [
+      'Refusing to seed Media against a remote DATABASE_URI with local disk storage.',
+      'That creates DB rows without uploading files to Blob/S3 (broken images + 404 deletes).',
+      '',
+      'Fix: set BLOB_READ_WRITE_TOKEN from your Vercel Blob store (or set S3_BUCKET),',
+      'then re-run npm run seed:articles.',
+      '',
+      `DATABASE_URI host looks remote; media mode is "${mode}".`,
+    ].join('\n'),
+  )
+}
 
 function collectImageSrcs(html: string): string[] {
   const srcs = new Set<string>()
@@ -141,6 +180,8 @@ async function main() {
   if (!(process.env.PAYLOAD_SECRET || '').trim()) {
     throw new Error('PAYLOAD_SECRET is missing. Check .env')
   }
+
+  assertSeedStorageSafe()
 
   const payload = await getPayload({ config })
 

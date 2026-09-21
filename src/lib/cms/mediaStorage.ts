@@ -2,7 +2,7 @@
  * Media storage selection for Payload uploads.
  *
  * Priority:
- * - Vercel + BLOB_READ_WRITE_TOKEN → Vercel Blob
+ * - Valid BLOB_READ_WRITE_TOKEN → Vercel Blob (local seed + Vercel)
  * - S3_BUCKET set (EC2 / local against AWS) → S3
  * - Otherwise → local disk (dev / single-node EC2 without S3)
  */
@@ -32,7 +32,10 @@ export function getMediaStorageMode(): MediaStorageMode {
   const hasValidBlobToken = blobToken.startsWith('vercel_blob_rw_')
   const s3Bucket = getS3Bucket()
 
-  if (isVercelRuntime() && hasValidBlobToken) return 'blob'
+  // Prefer Blob whenever a token exists — including local `npm run seed:*`
+  // against Neon/Vercel. Gating on VERCEL=1 left seed writes on local disk
+  // while Media rows landed in the remote DB (broken thumbnails / 404 deletes).
+  if (hasValidBlobToken) return 'blob'
   if (s3Bucket) return 's3'
   return 'local'
 }
