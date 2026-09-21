@@ -2,8 +2,8 @@
  * Upsert Payload Articles with Lexical Article body blocks converted from the
  * static HTML library (headings, paragraphs, lists, links, uploads).
  *
- * Inline `/images/...` files are uploaded to Media once, then referenced as
- * Lexical upload nodes so they edit as proper blocks in admin.
+ * Featured images + inline `/images/...` files are uploaded to Media once,
+ * then referenced on each article / as Lexical upload nodes.
  *
  * Usage: npm run seed:articles
  */
@@ -195,6 +195,8 @@ async function main() {
 
   const allSrcs = new Set<string>()
   for (const article of fallbackArticleData) {
+    const featured = article.featuredImage?.trim()
+    if (featured?.startsWith('/')) allSrcs.add(featured)
     for (const src of collectImageSrcs(article.content)) {
       allSrcs.add(src)
     }
@@ -255,10 +257,20 @@ async function main() {
     })
     coerceUploadIds(content.root)
 
+    const featuredSrc = article.featuredImage?.trim()
+    const featuredImageId =
+      featuredSrc && featuredSrc.startsWith('/')
+        ? mediaBySrc.get(featuredSrc)
+        : undefined
+    if (featuredSrc && featuredImageId == null) {
+      console.warn(`No media for featured image on ${slug}: ${featuredSrc}`)
+    }
+
     const data = {
       title: article.title,
       slug,
       category: categoryId,
+      ...(featuredImageId != null ? { featuredImage: featuredImageId } : {}),
       content,
       readTime: article.readTime,
       publishedAt,
