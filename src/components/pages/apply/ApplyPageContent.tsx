@@ -386,6 +386,7 @@ const ApplyPageContent: React.FC<ApplyPageContentProps> = ({ content }) => {
                   title="Premium Supply Partners Australia | DX LIVING"
                   className="w-full h-full rounded-[20px] overflow-hidden"
                   stretch
+                  lazy
                 />
               </div>
             </div>
@@ -398,6 +399,7 @@ const ApplyPageContent: React.FC<ApplyPageContentProps> = ({ content }) => {
                   title="Join Premium Supplier Network | DX LIVING"
                   className="w-full h-full rounded-[20px] overflow-hidden"
                   stretch
+                  lazy
                 />
               </div>
             </div>

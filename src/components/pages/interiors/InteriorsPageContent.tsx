@@ -224,6 +224,7 @@ const InteriorsPageContent: React.FC<InteriorsPageContentProps> = ({
             videoId={content.introduction.introVideo.vimeoVideo}
             title="DX Interiors Video"
             className="w-auto h-auto overflow-hidden"
+            lazy
           />
         </div>
       </section>
@@ -367,6 +368,7 @@ const InteriorsPageContent: React.FC<InteriorsPageContentProps> = ({
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

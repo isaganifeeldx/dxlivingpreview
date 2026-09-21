@@ -238,6 +238,7 @@ const ModelPageContent: React.FC<ModelPageContentProps> = ({ content, moduleCard
             className="w-full h-full scale-[1.2]"
             viewportAutoplay
             viewportThreshold={0.7}
+            lazy
           />
         </div>
       </section>
@@ -408,6 +409,7 @@ const ModelPageContent: React.FC<ModelPageContentProps> = ({ content, moduleCard
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

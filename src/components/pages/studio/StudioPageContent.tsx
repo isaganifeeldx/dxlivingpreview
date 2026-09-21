@@ -363,6 +363,7 @@ const StudioPageContent: React.FC<StudioPageContentProps> = ({ content, moduleCa
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

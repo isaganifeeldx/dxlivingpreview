@@ -171,6 +171,7 @@ const SupplierPageContent: React.FC<SupplierPageContentProps> = ({ content }) =>
             muted={true}
             parallax={true}
             stretch={true}
+            lazy
           />
         </div>
       </section>
@@ -262,6 +263,7 @@ const SupplierPageContent: React.FC<SupplierPageContentProps> = ({ content }) =>
             loop={true}
             controls={false}
             muted={true}
+            lazy
           />
         </div>
       </section>
@@ -327,6 +329,7 @@ const SupplierPageContent: React.FC<SupplierPageContentProps> = ({ content }) =>
                     muted={true}
                     parallax={true}
                     stretch={true}
+                    lazy
                   />
                 </div>
               </div>
@@ -409,6 +412,7 @@ const SupplierPageContent: React.FC<SupplierPageContentProps> = ({ content }) =>
             muted={true}
             parallax={true}
             stretch={true}
+            lazy
           />
         </div>
 

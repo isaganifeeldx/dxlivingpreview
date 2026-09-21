@@ -130,6 +130,7 @@ const ProjectsPageContent: React.FC<ProjectsPageContentProps> = ({ content, proj
               muted
               parallax
               stretch
+              lazy
             />
           </div>
         ) : (
@@ -404,6 +405,7 @@ const ProjectsPageContent: React.FC<ProjectsPageContentProps> = ({ content, proj
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

@@ -866,6 +866,7 @@ const ArticlesPageContent: React.FC<ArticlesPageContentProps> = ({ content, arti
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

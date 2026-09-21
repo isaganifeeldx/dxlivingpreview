@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { useViewportAutoplay } from '@/hooks/useViewportAutoplay';
 import { useNearViewportOnce } from '@/hooks/useNearViewportOnce';
 import {
@@ -8,8 +8,28 @@ import {
   signalHeroVideoReady,
 } from '@/lib/heroVideoGate'
 import { isShellReady, subscribeShellReady } from '@/lib/shellReadyGate'
-import { loadVimeoApi } from '@/lib/vimeoApi'
+import { loadVimeoApi, withVimeoPlayerInitSlot } from '@/lib/vimeoApi'
 import { getVimeoThumbnailUrl } from '@/lib/vimeoThumbnail'
+
+type VimeoPlayerInstance = {
+  play: () => Promise<void>
+  pause: () => Promise<void>
+  setVolume: (volume: number) => Promise<void>
+  setMuted?: (muted: boolean) => Promise<void>
+  getPaused?: () => Promise<boolean>
+  getDuration: () => Promise<number>
+  ready: () => Promise<void>
+  on: (event: string, callback: () => void) => void
+  off: (event: string, callback: () => void) => void
+  destroy?: () => void
+}
+
+/** Vimeo postMessage routes by player_id — must be unique per iframe on the page. */
+let vimeoPlayerIdSeq = 0
+
+/** Reveal poster even if Player API hangs (common with many simultaneous embeds). */
+const REVEAL_FALLBACK_MS = 2500
+const PLAYER_READY_TIMEOUT_MS = 2500
 
 interface VimeoEmbedProps {
   videoId: string;
@@ -78,16 +98,26 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
   deferEmbedMs = 0,
   quality = 'auto',
 }) => {
-  const playerRef = useRef<any>(null);
+  const reactId = useId().replace(/:/g, '')
+  const playerIdRef = useRef<string | null>(null)
+  if (!playerIdRef.current) {
+    vimeoPlayerIdSeq += 1
+    playerIdRef.current = `dxv-${videoId}-${reactId || vimeoPlayerIdSeq}`
+  }
+  const playerId = playerIdRef.current
+  const resolvedIframeId = iframeId ?? playerId
+
+  const playerRef = useRef<VimeoPlayerInstance | null>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState<string | null>(poster ?? null);
   const [isVideoVisible, setIsVideoVisible] = useState(false)
   const [deferPassed, setDeferPassed] = useState(deferEmbedMs <= 0)
   const [shellReady, setShellReadyState] = useState(false)
-  const volumeTransitionRef = useRef<NodeJS.Timeout | null>(null)
-  const [currentVolume, setCurrentVolume] = useState(0)
+  const volumeTransitionRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const currentVolumeRef = useRef(0)
   const posterReadySignaledRef = useRef(false)
+  const isVideoVisibleRef = useRef(false)
 
   const { ref: nearViewportRef, shouldLoad: nearViewportShouldLoad } = useNearViewportOnce({
     eager: !lazy,
@@ -112,11 +142,27 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
 
   const setContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
-      nearViewportRef.current = node
+      nearViewportRef(node)
       viewportAutoplayRef(node)
     },
-    [viewportAutoplayRef],
+    [nearViewportRef, viewportAutoplayRef],
   )
+
+  const markPosterReady = useCallback(() => {
+    if (!signalPageReady || posterReadySignaledRef.current) return;
+    posterReadySignaledRef.current = true;
+    signalHeroVideoReady();
+  }, [signalPageReady]);
+
+  const revealVideo = useCallback(() => {
+    if (isVideoVisibleRef.current) {
+      markPosterReady()
+      return
+    }
+    isVideoVisibleRef.current = true
+    setIsVideoVisible(true)
+    markPosterReady()
+  }, [markPosterReady])
 
   const transitionVolume = (targetVolume: number, duration: number) => {
     if (!playerRef.current) return;
@@ -125,7 +171,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
       clearInterval(volumeTransitionRef.current);
     }
 
-    const startVolume = currentVolume;
+    const startVolume = currentVolumeRef.current;
     const volumeDifference = targetVolume - startVolume;
     const steps = 30;
     const stepDuration = duration / steps;
@@ -136,9 +182,9 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
       const progress = step / steps;
       const newVolume = startVolume + volumeDifference * progress;
 
-      setCurrentVolume(newVolume);
-      playerRef.current.setVolume(newVolume).catch((error: any) => {
-        console.log('Volume change failed:', error);
+      currentVolumeRef.current = newVolume;
+      playerRef.current?.setVolume(newVolume).catch(() => {
+        // Volume API may be unavailable on background embeds.
       });
 
       if (step >= steps) {
@@ -204,12 +250,6 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     registerHeroVideoCandidate();
   }, [signalPageReady]);
 
-  const markPosterReady = useCallback(() => {
-    if (!signalPageReady || posterReadySignaledRef.current) return;
-    posterReadySignaledRef.current = true;
-    signalHeroVideoReady();
-  }, [signalPageReady]);
-
   useEffect(() => {
     if (!signalPageReady || !thumbnailUrl) return;
 
@@ -234,28 +274,68 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     };
   }, [thumbnailUrl, signalPageReady, markPosterReady]);
 
+  // Always lift the poster after the iframe mounts — even if Player API never
+  // becomes ready (the root cause of "stuck on thumbnail" on multi-embed pages).
+  useEffect(() => {
+    if (!shouldLoad) return
+
+    const fallbackId = window.setTimeout(revealVideo, REVEAL_FALLBACK_MS)
+    return () => window.clearTimeout(fallbackId)
+  }, [shouldLoad, revealVideo])
+
   useEffect(() => {
     if (!shouldLoad) return;
 
     let cancelled = false;
 
-    loadVimeoApi()
-      .then(() => {
-        if (cancelled || !iframeRef.current) return;
-        const Vimeo = (window as Window & { Vimeo?: { Player: new (el: HTMLIFrameElement) => unknown } })
-          .Vimeo;
-        if (!Vimeo) return;
-        playerRef.current = new Vimeo.Player(iframeRef.current);
-        setIsPlayerReady(true);
-      })
-      .catch(() => {
-        // Player API failed; iframe may still play without API controls.
-      });
+    const initPlayer = async () => {
+      try {
+        await loadVimeoApi()
+        if (cancelled || !iframeRef.current) return
+
+        const Vimeo = (
+          window as Window & {
+            Vimeo?: { Player: new (el: HTMLIFrameElement) => VimeoPlayerInstance }
+          }
+        ).Vimeo
+        if (!Vimeo) return
+
+        await withVimeoPlayerInitSlot(async () => {
+          if (cancelled || !iframeRef.current) return
+
+          const player = new Vimeo.Player(iframeRef.current)
+          playerRef.current = player
+
+          // Do not block forever on ready() — that left iframes at opacity 0.
+          await Promise.race([
+            player.ready().catch(() => undefined),
+            new Promise<void>((resolve) => {
+              window.setTimeout(resolve, PLAYER_READY_TIMEOUT_MS)
+            }),
+          ])
+
+          if (cancelled) {
+            player.destroy?.()
+            if (playerRef.current === player) playerRef.current = null
+            return
+          }
+
+          setIsPlayerReady(true)
+        })
+      } catch {
+        // Player API failed; iframe may still play via native autoplay URL.
+        // Reveal so the user is not stuck on the poster.
+        if (!cancelled) revealVideo()
+      }
+    }
+
+    void initPlayer()
 
     return () => {
       cancelled = true;
       if (volumeTransitionRef.current) {
         clearInterval(volumeTransitionRef.current);
+        volumeTransitionRef.current = null;
       }
       if (playerRef.current) {
         playerRef.current.destroy?.();
@@ -263,7 +343,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
       }
       setIsPlayerReady(false);
     };
-  }, [shouldLoad]);
+  }, [shouldLoad, revealVideo]);
 
   useEffect(() => {
     if (!isPlayerReady || !playerRef.current) return
@@ -286,12 +366,10 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
         // Autoplay may still be blocked; background mode usually allows muted play.
       }
 
-      // Native iframe autoplay can start before Player listeners attach — if we
-      // missed the play event, still reveal the iframe once playback is active.
       try {
         const paused = await player.getPaused?.()
         if (!cancelled && paused === false) {
-          setIsVideoVisible(true)
+          revealVideo()
         }
       } catch {
         // Ignore.
@@ -304,7 +382,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     }, 400)
 
     const retryIntervalId = window.setInterval(() => {
-      if (cancelled || isVideoVisible) return
+      if (cancelled || isVideoVisibleRef.current) return
       ensurePlaying()
     }, 700)
 
@@ -313,7 +391,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
       window.clearTimeout(retryId)
       window.clearInterval(retryIntervalId)
     }
-  }, [autoplay, isPlayerReady, viewportAutoplay, isVideoVisible])
+  }, [autoplay, isPlayerReady, viewportAutoplay, revealVideo])
 
   useEffect(() => {
     if (!isPlayerReady || !playerRef.current) return
@@ -321,40 +399,27 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     let isCancelled = false
     const player = playerRef.current
 
-    const revealVideo = () => {
-      if (isCancelled) return
-      setIsVideoVisible(true)
-      markPosterReady()
+    const onReveal = () => {
+      if (!isCancelled) revealVideo()
     }
 
-    // If there is no thumbnail, show the iframe as soon as it can play.
     if (!thumbnailUrl) {
-      revealVideo()
+      onReveal()
     }
+
+    player.on('loaded', onReveal)
+    player.on('play', onReveal)
+    player.on('playing', onReveal)
 
     player
       .ready()
       .then(async () => {
         if (isCancelled) return
 
-        player.on('loaded', revealVideo)
-        player.on('play', revealVideo)
-        player.on('playing', revealVideo)
-
-        try {
-          const duration = await player.getDuration()
-          if (duration > 0 && !thumbnailUrl) {
-            revealVideo()
-          }
-        } catch {
-          // Wait for loaded/play events.
-        }
-
-        // Cover the race where autoplay already started before listeners attached.
         try {
           const paused = await player.getPaused?.()
           if (paused === false) {
-            revealVideo()
+            onReveal()
             return
           }
         } catch {
@@ -365,29 +430,27 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
           await player.play().catch(() => undefined)
           try {
             const paused = await player.getPaused?.()
-            if (paused === false) {
-              revealVideo()
-              return
-            }
+            if (paused === false) onReveal()
           } catch {
             // Fall through.
-          }
-          if (!thumbnailUrl) {
-            revealVideo()
           }
         }
       })
       .catch(() => {
-        if (!isCancelled) revealVideo()
+        if (!isCancelled) onReveal()
       })
-
-    const fallbackTimeout = window.setTimeout(revealVideo, 5000)
 
     return () => {
       isCancelled = true
-      window.clearTimeout(fallbackTimeout)
+      try {
+        player.off('loaded', onReveal)
+        player.off('play', onReveal)
+        player.off('playing', onReveal)
+      } catch {
+        // Player may already be destroyed.
+      }
     }
-  }, [autoplay, isPlayerReady, thumbnailUrl, viewportAutoplay, markPosterReady])
+  }, [autoplay, isPlayerReady, thumbnailUrl, viewportAutoplay, revealVideo])
 
   useEffect(() => {
     if (!viewportAutoplay || !isPlayerReady || !playerRef.current) return;
@@ -398,7 +461,6 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     let retryTimeoutId: number | undefined;
 
     const playInView = async () => {
-      // Browsers block unmuted autoplay — start muted, then fade volume up.
       try {
         await player.setMuted?.(true);
         await player.setVolume?.(0);
@@ -415,7 +477,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
 
       if (cancelled) return;
 
-      setIsVideoVisible(true);
+      revealVideo();
       try {
         const paused = await player.getPaused?.();
         if (paused === false) {
@@ -432,11 +494,10 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
         if (!cancelled) void playInView();
       }, 400);
     } else {
-      // Leave threshold crossed (e.g. ≤70% visible) — pause right away.
       transitionVolume(0, Math.min(volumeTransitionDuration, 250));
       pauseTimeoutId = window.setTimeout(() => {
-        player.pause().catch((error: any) => {
-          console.log('Pause failed:', error);
+        player.pause().catch(() => {
+          // Ignore pause failures on teardown.
         });
       }, 50);
     }
@@ -446,7 +507,7 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
       if (retryTimeoutId !== undefined) window.clearTimeout(retryTimeoutId);
       if (pauseTimeoutId !== undefined) window.clearTimeout(pauseTimeoutId);
     };
-  }, [isVisible, viewportAutoplay, isPlayerReady, volumeTransitionDuration]);
+  }, [isVisible, viewportAutoplay, isPlayerReady, volumeTransitionDuration, revealVideo]);
 
   useEffect(() => {
     if (!registerMainVideoPlayer || !isPlayerReady || !playerRef.current) return;
@@ -463,11 +524,12 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     };
   }, [registerMainVideoPlayer, isPlayerReady]);
 
-  const buildVimeoUrl = () => {
+  const vimeoUrl = useMemo(() => {
     const params = new URLSearchParams({
       badge: '0',
       autopause: '0',
-      player_id: '0',
+      // Unique per embed — shared player_id=0 breaks multi-embed Player API messaging.
+      player_id: playerId,
       app_id: '58479',
       autoplay: (viewportAutoplay ? false : autoplay) ? '1' : '0',
       loop: loop ? '1' : '0',
@@ -481,17 +543,34 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     });
 
     return `https://player.vimeo.com/video/${videoId}?${params.toString()}`;
-  };
+  }, [
+    playerId,
+    videoId,
+    viewportAutoplay,
+    autoplay,
+    loop,
+    controls,
+    muted,
+    quality,
+  ]);
+
+  const handleIframeLoad = useCallback(() => {
+    // Native autoplay may already be running; don't wait only on Player events.
+    if (autoplay && !viewportAutoplay) {
+      revealVideo()
+    }
+  }, [autoplay, viewportAutoplay, revealVideo])
 
   const iframeProps = {
     ref: iframeRef,
-    id: iframeId,
-    src: shouldLoad ? buildVimeoUrl() : undefined,
+    id: resolvedIframeId,
+    src: shouldLoad ? vimeoUrl : undefined,
     frameBorder: '0' as const,
     allow:
       'autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share',
     referrerPolicy: 'strict-origin-when-cross-origin' as const,
     title,
+    onLoad: handleIframeLoad,
   };
 
   if (backgroundCover) {
@@ -526,26 +605,44 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
     );
   }
 
-  const mediaStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: stretch ? '-20%' : '0',
-    left: stretch ? '-20%' : '0',
-    width: stretch ? '130%' : '100%',
-    height: stretch ? '130%' : '100%',
-    transform: parallax ? 'scale(1.1)' : 'none',
-    willChange: parallax ? 'transform' : 'auto',
-  };
+  const isFullBleed = className.includes('w-full h-full')
+  // Full-bleed CTA/banner: cover the box first; section CSS scales poster+iframe together.
+  // Stretch/parallax extras still apply for non-CSS-scaled pages.
+  const mediaStyle: React.CSSProperties = isFullBleed
+    ? {
+        position: 'absolute',
+        inset: 0,
+        width: '100%',
+        height: '100%',
+        maxWidth: 'none',
+        objectFit: 'cover',
+        objectPosition: 'center center',
+        transform: parallax || stretch ? 'scale(1.15)' : 'none',
+        transformOrigin: 'center center',
+        willChange: parallax ? 'transform' : 'auto',
+      }
+    : {
+        position: 'absolute',
+        top: stretch ? '-20%' : '0',
+        left: stretch ? '-20%' : '0',
+        width: stretch ? '130%' : '100%',
+        height: stretch ? '130%' : '100%',
+        objectFit: 'cover',
+        objectPosition: 'center center',
+        transform: parallax ? 'scale(1.1)' : 'none',
+        willChange: parallax ? 'transform' : 'auto',
+      };
 
   return (
     <div className={`vimeo-embed ${className}`} ref={setContainerRef}>
       <div
         style={{
-          padding: className.includes('w-full h-full') ? '0' : '56.25% 0 0 0',
+          padding: isFullBleed ? '0' : '56.25% 0 0 0',
           position: 'relative',
           width: '100%',
-          height: className.includes('w-full h-full') ? '100%' : 'auto',
+          height: isFullBleed ? '100%' : 'auto',
           backgroundColor: '#0a0a0a',
-          overflow: stretch ? 'hidden' : 'visible',
+          overflow: 'hidden',
         }}
       >
         {thumbnailUrl ? (
@@ -559,13 +656,14 @@ const VimeoEmbed: React.FC<VimeoEmbedProps> = ({
             fetchPriority={signalPageReady ? 'high' : 'auto'}
             onLoad={markPosterReady}
             onError={markPosterReady}
-            className="pointer-events-none"
-            style={{ ...mediaStyle, zIndex: 0, objectFit: 'cover' }}
+            className="pointer-events-none vimeo-embed__poster"
+            style={{ ...mediaStyle, zIndex: 0 }}
           />
         ) : null}
         {shouldLoad ? (
           <iframe
             {...iframeProps}
+            className="vimeo-embed__video"
             style={{
               ...mediaStyle,
               backgroundColor: 'transparent',

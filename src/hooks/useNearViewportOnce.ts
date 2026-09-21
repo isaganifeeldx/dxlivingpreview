@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useState, type RefCallback } from 'react';
 
 interface UseNearViewportOnceOptions {
   /** How far before the element enters the viewport to trigger. Default: 200px. */
@@ -12,26 +12,34 @@ interface UseNearViewportOnceOptions {
 /**
  * Becomes true once the element is near (or in) the viewport, then stays true.
  * Used to defer third-party iframes/scripts until they are about to be seen.
+ *
+ * Uses a callback ref so the observer attaches after the DOM node exists
+ * (plain useRef + effect can miss the node and never load).
  */
 export function useNearViewportOnce(
   options: UseNearViewportOnceOptions = {},
 ): {
-  ref: RefObject<HTMLDivElement | null>;
+  ref: RefCallback<HTMLDivElement | null>;
   shouldLoad: boolean;
 } {
   const { rootMargin = '200px 0px', eager = false } = options;
-  const ref = useRef<HTMLDivElement | null>(null);
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
   const [shouldLoad, setShouldLoad] = useState(eager);
 
-  useEffect(() => {
-    if (eager || shouldLoad) return;
+  const ref = useCallback<RefCallback<HTMLDivElement | null>>((node) => {
+    setElement(node);
+  }, []);
 
-    const element = ref.current;
-    if (!element) return;
+  useEffect(() => {
+    if (eager) {
+      setShouldLoad(true);
+      return;
+    }
+    if (shouldLoad || !element) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           setShouldLoad(true);
           observer.disconnect();
         }
@@ -42,7 +50,7 @@ export function useNearViewportOnce(
     observer.observe(element);
 
     return () => observer.disconnect();
-  }, [eager, rootMargin, shouldLoad]);
+  }, [eager, element, rootMargin, shouldLoad]);
 
   return { ref, shouldLoad };
 }

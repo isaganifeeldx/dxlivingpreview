@@ -236,6 +236,7 @@ const PrestigePageContent: React.FC<PrestigePageContentProps> = ({
             videoId={content.introduction.introVideo.vimeoVideo}
             title="DX Prestige video"
             className="w-auto h-auto overflow-hidden"
+            lazy
           />
         </div>
       </section>
@@ -406,6 +407,7 @@ const PrestigePageContent: React.FC<PrestigePageContentProps> = ({
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 

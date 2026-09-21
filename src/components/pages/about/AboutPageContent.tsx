@@ -159,6 +159,7 @@ const AboutPageContent: React.FC<AboutPageContentProps> = ({ content }) => {
                   videoId={content.videoLeft}
                   title="Personalized Home Design Made Real | DX LIVING"
                   className="w-auto h-auto rounded-[20px] overflow-hidden"
+                  lazy
                 />
               </div>
             </div>
@@ -195,6 +196,7 @@ const AboutPageContent: React.FC<AboutPageContentProps> = ({ content }) => {
             videoId={content.fullWidthVideo}
             title="See Your Dream Home Before Building | DX LIVING"
             className="w-auto h-auto overflow-hidden"
+            lazy
           />
         </div>
       </section>
@@ -296,6 +298,7 @@ const AboutPageContent: React.FC<AboutPageContentProps> = ({ content }) => {
             muted
             parallax
             stretch
+            lazy
           />
         </div>
 
