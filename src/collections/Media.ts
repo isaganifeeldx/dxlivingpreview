@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { APIError } from 'payload'
 import { adminOnlyApiView, authenticated } from '@/access'
+import { getMediaStorageMode, isVercelRuntime } from '@/lib/cms/mediaStorage'
 import { getUniqueMediaFilename } from '@/lib/media/getUniqueMediaFilename'
 
 export const Media: CollectionConfig = {
@@ -42,6 +43,20 @@ export const Media: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    beforeOperation: [
+      ({ args, operation, req }) => {
+        if (operation !== 'create' && operation !== 'update') return args
+        if (!req.file) return args
+        if (!isVercelRuntime() || getMediaStorageMode() !== 'local') return args
+
+        throw new APIError(
+          'Media uploads on Vercel need object storage. Connect a Vercel Blob store so BLOB_READ_WRITE_TOKEN is set, or set S3_BUCKET, then redeploy. Local disk is not writable.',
+          500,
+        )
+      },
+    ],
+  },
   fields: [
     {
       name: 'alt',

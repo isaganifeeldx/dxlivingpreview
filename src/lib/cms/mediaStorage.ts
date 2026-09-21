@@ -9,28 +9,45 @@
 
 export type MediaStorageMode = 'blob' | 's3' | 'local'
 
-export function getMediaStorageMode(): MediaStorageMode {
-  const isVercel = process.env.VERCEL === '1'
-  const blobToken = (process.env.BLOB_READ_WRITE_TOKEN || '').trim()
-  const hasValidBlobToken = blobToken.startsWith('vercel_blob_rw_')
-  const s3Bucket = (process.env.S3_BUCKET || '').trim()
+/**
+ * Read env at runtime. Direct `process.env.NAME` access is inlined by Next
+ * at build time, so a Blob token added on Vercel can stay empty in the
+ * serverless bundle and Payload falls back to local `mkdir('media')`.
+ */
+function serverEnv(name: string): string {
+  const value = process.env[name]
+  return typeof value === 'string' ? value.trim() : ''
+}
 
-  if (isVercel && hasValidBlobToken) return 'blob'
+export function isVercelRuntime(): boolean {
+  return serverEnv('VERCEL') === '1'
+}
+
+export function getBlobReadWriteToken(): string {
+  return serverEnv('BLOB_READ_WRITE_TOKEN')
+}
+
+export function getMediaStorageMode(): MediaStorageMode {
+  const blobToken = getBlobReadWriteToken()
+  const hasValidBlobToken = blobToken.startsWith('vercel_blob_rw_')
+  const s3Bucket = getS3Bucket()
+
+  if (isVercelRuntime() && hasValidBlobToken) return 'blob'
   if (s3Bucket) return 's3'
   return 'local'
 }
 
 export function getS3Bucket(): string {
-  return (process.env.S3_BUCKET || '').trim()
+  return serverEnv('S3_BUCKET')
 }
 
 export function getS3Region(): string {
-  return (process.env.S3_REGION || 'us-east-1').trim()
+  return serverEnv('S3_REGION') || 'us-east-1'
 }
 
 /** Optional CloudFront / custom domain base (no trailing slash). */
 export function getS3PublicUrl(): string {
-  return (process.env.S3_PUBLIC_URL || '').trim().replace(/\/$/, '')
+  return serverEnv('S3_PUBLIC_URL').replace(/\/$/, '')
 }
 
 /**
@@ -38,7 +55,7 @@ export function getS3PublicUrl(): string {
  * (ACLs disabled) — use a bucket policy for public read instead.
  */
 export function getS3Acl(): 'private' | 'public-read' | undefined {
-  const raw = (process.env.S3_ACL || 'public-read').trim().toLowerCase()
+  const raw = (serverEnv('S3_ACL') || 'public-read').toLowerCase()
   if (!raw || raw === 'none' || raw === 'off') return undefined
   if (raw === 'private') return 'private'
   return 'public-read'
@@ -51,16 +68,12 @@ export function buildS3ClientConfig(): {
   endpoint?: string
   forcePathStyle?: boolean
 } {
-  const accessKeyId = (process.env.S3_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || '').trim()
-  const secretAccessKey = (
-    process.env.S3_SECRET_ACCESS_KEY ||
-    process.env.AWS_SECRET_ACCESS_KEY ||
-    ''
-  ).trim()
-  const endpoint = (process.env.S3_ENDPOINT || '').trim()
-  const forcePathStyle =
-    process.env.S3_FORCE_PATH_STYLE === 'true' ||
-    process.env.S3_FORCE_PATH_STYLE === '1'
+  const accessKeyId = serverEnv('S3_ACCESS_KEY_ID') || serverEnv('AWS_ACCESS_KEY_ID')
+  const secretAccessKey =
+    serverEnv('S3_SECRET_ACCESS_KEY') || serverEnv('AWS_SECRET_ACCESS_KEY')
+  const endpoint = serverEnv('S3_ENDPOINT')
+  const forcePathStyleFlag = serverEnv('S3_FORCE_PATH_STYLE')
+  const forcePathStyle = forcePathStyleFlag === 'true' || forcePathStyleFlag === '1'
 
   return {
     region: getS3Region(),

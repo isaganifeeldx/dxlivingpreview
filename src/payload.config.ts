@@ -41,7 +41,9 @@ import { normalizeDatabaseUri } from './lib/cms/databaseUri'
 import { numberedBlobUploadsPlugin } from './plugins/numberedBlobUploads'
 import {
   buildS3ClientConfig,
+  getBlobReadWriteToken,
   getMediaStorageMode,
+  isVercelRuntime,
   getS3Acl,
   getS3Bucket,
   getS3PublicUrl,
@@ -50,8 +52,8 @@ import {
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const blobToken = (process.env.BLOB_READ_WRITE_TOKEN || '').trim()
-const isVercel = process.env.VERCEL === '1'
+const blobToken = getBlobReadWriteToken()
+const isVercel = isVercelRuntime()
 const mediaStorageMode = getMediaStorageMode()
 const useBlob = mediaStorageMode === 'blob'
 const useS3 = mediaStorageMode === 's3'
