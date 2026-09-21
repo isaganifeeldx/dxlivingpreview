@@ -107,8 +107,7 @@ export const FALLBACK_APPLY_CONTENT: ApplyPageContentData = {
 export const APPLY_METADATA_TITLE = 'Supplier Partnership Australia | Apply with DX Living'
 export const APPLY_METADATA_DESCRIPTION =
   'Supplier partnership opportunities in Australia with DX Living. Apply now to join luxury residential projects with leading architects and builders.'
-export const APPLY_FOCUS_KEYWORD = 'supplier partnership Australia'
-
+export const APPLY_FOCUS_KEYWORD = 'supplier partnership'
 export const applyPageDefaults: ApplyPageCmsContent = {
   ...FALLBACK_APPLY_CONTENT,
   seo: emptySeoData({

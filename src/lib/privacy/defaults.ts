@@ -2,11 +2,9 @@ import { fallbackPrivacyPolicyContent } from '@/data/legalContent'
 import { emptySeoData } from '@/lib/seo/types'
 import type { PrivacyPageContentData } from './types'
 
-export const PRIVACY_METADATA_TITLE = 'Privacy Policy | DX LIVING'
-
+export const PRIVACY_METADATA_TITLE = 'Privacy Policy | DX Living'
 export const PRIVACY_METADATA_DESCRIPTION =
   'Read the DX Living privacy policy to understand how we collect, use and protect your personal information across our website and services.'
-
 export const privacyPageDefaults: PrivacyPageContentData = {
   title: 'PRIVACY POLICY',
   body: fallbackPrivacyPolicyContent,

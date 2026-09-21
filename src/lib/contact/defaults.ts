@@ -68,8 +68,7 @@ export const CONTACT_METADATA_TITLE =
   'Contact DX Living | Luxury Home Design Consultation'
 export const CONTACT_METADATA_DESCRIPTION =
   'Contact DX Living for luxury home design consultation. Speak with our team to plan your custom home project with clarity and confidence.'
-export const CONTACT_FOCUS_KEYWORD = 'luxury home design consultation'
-
+export const CONTACT_FOCUS_KEYWORD = 'Contact DX Living'
 export const contactPageDefaults: ContactPageCmsContent = {
   ...FALLBACK_CONTACT_CONTENT,
   seo: emptySeoData({

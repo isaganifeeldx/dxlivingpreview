@@ -84,9 +84,8 @@ export const FALLBACK_INTERIORS_CONTENT: InteriorsPageContentData = {
 export const INTERIORS_METADATA_TITLE =
   'DX Interiors Luxury Homes | Interior Design Australia'
 export const INTERIORS_METADATA_DESCRIPTION =
-  'Interior design Australia reimagined by DX Interiors. DX Interiors provides custom, personalized luxury interiors that reflect your family lifestyle.'
-export const INTERIORS_FOCUS_KEYWORD = 'interior design Australia'
-
+  'Interior design Australia reimagined by DX Interiors. DX Interiors provides custom, personalized luxury interiors that reflect your family\'s lifestyle.'
+export const INTERIORS_FOCUS_KEYWORD = 'Interior design Australia'
 export const interiorsPageDefaults: InteriorsPageCmsContent = {
   ...FALLBACK_INTERIORS_CONTENT,
   seo: emptySeoData({

@@ -2,11 +2,9 @@ import { fallbackTermsOfServiceContent } from '@/data/legalContent'
 import { emptySeoData } from '@/lib/seo/types'
 import type { TermsPageContentData } from './types'
 
-export const TERMS_METADATA_TITLE = 'Terms of Service | DX LIVING'
-
+export const TERMS_METADATA_TITLE = 'Terms of Service | DX Living'
 export const TERMS_METADATA_DESCRIPTION =
   'Read the DX Living terms of service outlining the rules, conditions and responsibilities when using our website and services.'
-
 export const termsPageDefaults: TermsPageContentData = {
   title: 'TERMS OF SERVICE',
   body: fallbackTermsOfServiceContent,

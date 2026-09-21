@@ -24,7 +24,7 @@ export const FALLBACK_ABOUT_CONTENT: AboutPageContentData = {
     'Craft your vision with <strong>DX</strong> LIVING, explore authentic furniture and materials, styled perfectly in your actual space.',
   videoLeft: '1117005475',
   contentRight:
-    "With <strong>DX</strong> LIVING, your future home is more than a vision, it&apos;s an experience. Explore your space through hyper-real visuals, intelligent design technology, and real supplier materials that bring absolute certainty to every decision.",
+    "With <strong>DX</strong> LIVING, your future home is more than a vision, it's an experience. Explore your space through hyper-real visuals, intelligent design technology, and real supplier materials that bring absolute certainty to every decision.",
   fullWidthVideo: '1117005489',
   whyDxLiving: {
     heading: 'Why DX LIVING?',
@@ -38,7 +38,7 @@ export const FALLBACK_ABOUT_CONTENT: AboutPageContentData = {
       "For Homeowners & Investors: Step inside your future home before it's built. Experience scale, light, and atmosphere exactly as they will feel in reality. Compare finishes, explore options, and make confident, informed decisions at every stage.",
     ],
     lastContent:
-      "<strong>DX</strong> LIVING is more than visualisation, it&apos;s the future of home design, where vision, precision, and experience come together in perfect harmony.",
+      "<strong>DX</strong> LIVING is more than visualisation, it's the future of home design, where vision, precision, and experience come together in perfect harmony.",
   },
   cta: {
     heading: 'TRUE LUXURY BEGINS WITH YOUR VISION AND WE HELP YOU BRING IT TO LIFE',
@@ -54,7 +54,6 @@ export const ABOUT_METADATA_TITLE = 'About DX LIVING | Clarity in Luxury Home De
 export const ABOUT_METADATA_DESCRIPTION =
   'About DX LIVING: immersive 3D, VR and BIM solutions that give architects and developers clarity, confidence and control in luxury home design.'
 export const ABOUT_FOCUS_KEYWORD = 'About'
-
 export const aboutPageDefaults: AboutPageCmsContent = {
   ...FALLBACK_ABOUT_CONTENT,
   seo: emptySeoData({

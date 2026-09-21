@@ -27,7 +27,7 @@ export const FALLBACK_PROJECTS_PAGE_CONTENT: ProjectsPageContentData = {
     heading: 'BRING YOUR DREAM HOME TO LIFE WITH OUR EXPERT TEAM TODAY',
     content:
       "Collaborate with our specialists to design, visualise, and experience your project before it's built.",
-    button: 'CONNECT WITH DX LIVING',
+    button: 'Connect with DX LIVING',
     buttonLink: '/contact',
     videoBackground: '1117308030',
   },
@@ -38,7 +38,6 @@ export const PROJECTS_METADATA_TITLE =
 export const PROJECTS_METADATA_DESCRIPTION =
   'Explore home construction projects in Australia by DX Living. Discover luxury residential builds designed with precision, innovation and architectural clarity.'
 export const PROJECTS_FOCUS_KEYWORD = 'home construction projects Australia'
-
 export const projectsPageDefaults: ProjectsPageCmsContent = {
   ...FALLBACK_PROJECTS_PAGE_CONTENT,
   projects: fallbackProjects,

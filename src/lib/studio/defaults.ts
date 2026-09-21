@@ -165,7 +165,7 @@ export const FALLBACK_STUDIO_CONTENT: StudioPageContentData = {
   cta: {
     heading: 'FINDING THE MODULE THAT FITS YOUR AMBITION',
     content:
-      "We'll help you map your goals, uncover priorities, and choose the right DX LIVING solution for your project.",
+      "We'll help you map your goals, uncover priorities, and choose the right DXLIVING solution for your project.",
     button: 'Book a discovery call',
     buttonLink: '/contact',
     videoBackground: '1117308030',
@@ -176,7 +176,6 @@ export const STUDIO_METADATA_TITLE = '3D Home Design Australia | VR & BIM by DX 
 export const STUDIO_METADATA_DESCRIPTION =
   '3D home design in Australia by DX Living Studio. Experience immersive VR and BIM to visualise, plan and refine your custom home with precision.'
 export const STUDIO_FOCUS_KEYWORD = 'home design Australia'
-
 export const studioPageDefaults: StudioPageCmsContent = {
   ...FALLBACK_STUDIO_CONTENT,
   seo: emptySeoData({

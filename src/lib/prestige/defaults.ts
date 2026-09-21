@@ -86,7 +86,7 @@ export const FALLBACK_PRESTIGE_CONTENT: PrestigePageContentData = {
   cta: {
     heading: 'FINDING THE MODULE THAT FITS YOUR AMBITION',
     content:
-      "We'll help you map your goals, uncover priorities, and choose the right DX LIVING solution for your project.",
+      "We'll help you map your goals, uncover priorities, and choose the right DXLIVING solution for your project.",
     button: 'Book a discovery call',
     buttonLink: '/contact',
     videoBackground: '1117308030',
@@ -98,7 +98,6 @@ export const PRESTIGE_METADATA_TITLE =
 export const PRESTIGE_METADATA_DESCRIPTION =
   'DX Prestige offers luxury home design service in Australia. Bespoke, sustainable architecture tailored to your vision and prestige standards.'
 export const PRESTIGE_FOCUS_KEYWORD = 'luxury home design service'
-
 export const prestigePageDefaults: PrestigePageCmsContent = {
   ...FALLBACK_PRESTIGE_CONTENT,
   seo: emptySeoData({

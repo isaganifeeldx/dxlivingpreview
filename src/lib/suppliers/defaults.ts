@@ -111,7 +111,7 @@ export const FALLBACK_SUPPLIERS_CONTENT: SuppliersPageContentData = {
     content:
       "Submit your expression of interest to become a featured supplier on Australia's most digitally advanced residential projects.",
     button: 'PARTNER WITH US',
-    buttonLink: '/apply',
+    buttonLink: '/contact',
     videoBackground: '1117308030',
   },
 }
@@ -120,8 +120,7 @@ export const SUPPLIERS_METADATA_TITLE =
   'Premium Building Suppliers Australia | DX Living'
 export const SUPPLIERS_METADATA_DESCRIPTION =
   'Building suppliers in Australia with DX Living. Discover premium materials, finishes and trusted partners for luxury residential construction projects.'
-export const SUPPLIERS_FOCUS_KEYWORD = 'building suppliers Australia'
-
+export const SUPPLIERS_FOCUS_KEYWORD = 'building suppliers australia'
 export const suppliersPageDefaults: SuppliersPageCmsContent = {
   ...FALLBACK_SUPPLIERS_CONTENT,
   seo: emptySeoData({

@@ -38,9 +38,9 @@ export const projects: Project[] = [
     title: '251 Station St.',
     description:
       '251 Station St. is a home where aesthetics and emotion intertwine. Guided by natural light, organic forms, and refined materials, this space invites serenity, balance, and a deeper connection to the essential — elevating everyday living into a sensory experience beyond the visible.',
-    seoTitle: '251 Station St. | DX LIVING Project',
+    seoTitle: '251 Station Street Residential | DX Living Project',
     seoDescription:
-      'Explore 251 Station St., Edithvale — a residential project with 4D sequencing and VR flythrough by DX LIVING.',
+      'Explore the 251 Station Street project by DX Living, featuring immersive visualisation, contemporary architecture and luxury residential design.',
     timeframe: '3 Months',
     location: 'Edithvale',
     state: 'VIC 3196',
@@ -66,9 +66,9 @@ export const projects: Project[] = [
     title: '20 Head street',
     description:
       '20 Head Street demonstrates the pinnacle of contemporary refinement, harmonizing precise geometry with organic materials. The residence establishes an undeniable connection between its meticulously defined structure and the natural setting. Oversized window systems dissolve the interior boundary, reflecting technical precision, superior quality, and enduring sophistication.',
-    seoTitle: '20 Head street | DX LIVING Project',
+    seoTitle: '20 Head Street Residential | DX Living Project',
     seoDescription:
-      'A Brighton residential flythrough blending 2D SMP and 3D visuals, finished in 10 days to communicate precision, quality, and calm proportions.',
+      'Explore the 20 Head Street project by DX Living, featuring immersive visualisation, modern architecture and luxury residential design.',
     timeframe: '10 days',
     location: 'Brighton',
     state: 'VIC',
@@ -96,9 +96,9 @@ export const projects: Project[] = [
     title: '85 Commodore Drive',
     description:
       '85 Commodore Drive, Surfers Paradise exemplifies peerless coastal opulence. Its gracefully contoured facades and vast structural glass expanses integrate with the ocean panorama, eliminating the divide between residence and vista. Each component, from the fluid architectural profile to the custom amenities, is formulated to evoke calm, engagement, and a powerful sense of locale.',
-    seoTitle: '85 Commodore Drive Surfers Paradise | DX LIVING Project',
+    seoTitle: '85 Commodore Drive | DX Living Project',
     seoDescription:
-      'An architectural flythrough QLD pairs 2D SMP with 3D rendering to showcase expansive glazing and serene coastal form in 1 month.',
+      'Explore the 85 Commodore Drive project by DX Living, featuring immersive visualisation, modern architecture and luxury residential design.',
     timeframe: '1 month',
     location: 'Surfers Paradise',
     state: 'QLD',
@@ -114,7 +114,7 @@ export const projects: Project[] = [
       carousel: ['1125050585', '1125050493', '1125050424'],
     },
     featuredTitle: 'Luxury Home Commodore Dr | DX Living Project',
-    link: '/projects/85-commodore-drive',
+    link: '/projects/85-commodore-drive-surfers-paradise',
     type: 'Residential',
     image: '/images/projects/251-station-st.jpg',
     images: ['/placeholdervid.mp4'],
@@ -126,9 +126,9 @@ export const projects: Project[] = [
     title: '813 CLARENDON STREET',
     description:
       '20 Head Street demonstrates the pinnacle of contemporary refinement, harmonizing precise geometry with organic materials. The residence establishes an undeniable connection between its meticulously defined structure and the natural setting. Oversized window systems dissolve the interior boundary, reflecting technical precision, superior quality, and enduring sophistication.',
-    seoTitle: '813 Clarendon Street | DX LIVING Project',
+    seoTitle: '813 Clarendon Street Residential | DX Living Project',
     seoDescription:
-      'A 4D interactive flythrough unites 2D SMP, 3D rendering and 4D methodology for 813 Clarendon Street, VIC delivered in 1 month.',
+      'Explore the 813 Clarendon Street project by DX Living, featuring immersive visualisation, contemporary architecture and luxury residential design.',
     timeframe: '1 month',
     location: 'South Melbourne',
     state: 'VIC',
@@ -156,9 +156,9 @@ export const projects: Project[] = [
     title: '31 McIlwain Drive',
     description:
       '31 Mcilwain Drive occupies a privileged position overlooking the water, crafting a powerful interaction between structure and the environment. Architectural massing, textural richness, and expansive proportions generate a quiet elegance—a private sanctuary where elevated modern living meets tranquil maritime surroundings.',
-    seoTitle: '31 Mcilwain Drive | DX LIVING Project',
+    seoTitle: '31 McIlwain Drive Residential | DX Living Project',
     seoDescription:
-      'Experience a 3D rendering flythrough QLD of a Mermaid Waters residence 2D SMP + 3D visuals in 1 month, revealing massing, materials and waterfront flow.',
+      'Explore the 31 McIlwain Drive project by DX Living, featuring immersive visualisation, modern architecture and luxury residential design.',
     timeframe: '1 Month',
     location: 'Mermaid Waters',
     state: 'QLD',
@@ -186,9 +186,9 @@ export const projects: Project[] = [
     title: 'Nagambie Project',
     description:
       'The Nagambie Project embodies a sophisticated synthesis of elemental shapes and technical exactitude, forging an indelible bond with its landscape. Its remarkable oxidized metallic cladding and vast fenestration expertly capture scenic outlooks, merging the exterior into the primary living volume. This is a residence where exceptional materials and deliberate composition converge, yielding an immersive, understated, lavish haven.',
-    seoTitle: 'Nagambie Project | DX LIVING Project',
+    seoTitle: 'Nagambie Home Design | DX Living Project',
     seoDescription:
-      'A Nagambie project flythrough blends 2D SMP and 3D visuals in 1 month, capturing elemental forms, metal patina and immersive interior exterior flow.',
+      'Explore the Nagambie home design project by DX Living. A luxury residential concept combining immersive visualisation and modern architecture.',
     timeframe: '1 month',
     location: 'Nagambie',
     state: 'VIC',
@@ -210,7 +210,7 @@ export const projects: Project[] = [
     images: ['/placeholdervid.mp4'],
     centerHeroOnMobile: true,
     alignTechnologiesEnd: true,
-  },
+  }
 ];
 
 export const getProjectBySlug = (slug: string) => projects.find((project) => project.slug === slug);

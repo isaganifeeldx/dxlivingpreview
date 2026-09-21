@@ -30,6 +30,7 @@
     "seed:articles": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-articles.ts",
     "seed:projects-page": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-projects-page.ts",
     "seed:projects": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-projects.ts",
+    "sync:wp-seed": "node --import tsx scripts/sync-wp-seed-data.ts",
     "importmap": "node --require ./scripts/patch-next-env.cjs --import tsx ./node_modules/payload/bin.js generate:importmap"
   },
   "dependencies": {

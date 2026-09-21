@@ -46,8 +46,7 @@ export const FALLBACK_ARTICLES_PAGE_CONTENT: ArticlesPageContentData = {
 export const ARTICLES_METADATA_TITLE = 'Articles Modern Architecture Insights | DX Living'
 export const ARTICLES_METADATA_DESCRIPTION =
   'Explore modern architecture insights from DX Living. Expert articles on luxury design, sustainability, and contemporary homes for Australian families'
-export const ARTICLES_FOCUS_KEYWORD = 'modern architecture insights'
-
+export const ARTICLES_FOCUS_KEYWORD = 'Modern architecture insights'
 export const articlesPageDefaults: ArticlesPageCmsContent = {
   ...FALLBACK_ARTICLES_PAGE_CONTENT,
   articles: [],

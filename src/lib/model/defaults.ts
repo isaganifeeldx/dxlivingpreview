@@ -86,7 +86,7 @@ export const FALLBACK_MODEL_CONTENT: ModelPageContentData = {
   cta: {
     heading: 'FINDING THE MODULE THAT FITS YOUR AMBITION',
     content:
-      "We'll help you map your goals, uncover priorities, and choose the right DX LIVING solution for your project.",
+      "We'll help you map your goals, uncover priorities, and choose the right DXLIVING solution for your project.",
     button: 'Book a discovery call',
     buttonLink: '/contact',
     videoBackground: '1117308030',
@@ -96,8 +96,7 @@ export const FALLBACK_MODEL_CONTENT: ModelPageContentData = {
 export const MODEL_METADATA_TITLE = 'DX Model Australia | Modern Home Models'
 export const MODEL_METADATA_DESCRIPTION =
   'Modern home models reimagined by DX Model. Contemporary architectural designs combining sustainability, luxury, and personalization for Australian families.'
-export const MODEL_FOCUS_KEYWORD = 'modern home models'
-
+export const MODEL_FOCUS_KEYWORD = 'Modern home models'
 export const modelPageDefaults: ModelPageCmsContent = {
   ...FALLBACK_MODEL_CONTENT,
   seo: emptySeoData({

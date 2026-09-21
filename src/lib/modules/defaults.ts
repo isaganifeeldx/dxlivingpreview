@@ -62,9 +62,8 @@ export const FALLBACK_MODULES_CONTENT: ModulesPageContentData = {
 export const MODULES_METADATA_TITLE =
   'DX LIVING Luxury Homes Australia | Custom Modular Design'
 export const MODULES_METADATA_DESCRIPTION =
-  "Experience custom modular design excellence. DX Living offers premium architectural solutions for luxury homes across Australia's leading families."
+  'Experience custom modular design excellence. DX Living offers  premium architectural solutions for luxury homes across Australia\'s leading families.'
 export const MODULES_FOCUS_KEYWORD = 'Custom modular design'
-
 export const modulesPageDefaults: ModulesPageCmsContent = {
   ...FALLBACK_MODULES_CONTENT,
   seo: emptySeoData({
