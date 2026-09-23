@@ -10,6 +10,7 @@ import { getInteractiveAppPath } from '@/data/interactiveApps';
 import { buildPathWithReturnTo } from '@/lib/interactive/returnTo';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { getApiBaseUrl } from '@/lib/interactive/config';
+import { requestEmailVerification } from '@/lib/auth/verifyEmail';
 
 interface InteractiveAppViewerProps {
   app: InteractiveAppConfig;
@@ -33,6 +34,10 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [pendingVerifyEmail, setPendingVerifyEmail] = useState('');
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
+  const [resendVerificationMessage, setResendVerificationMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showLoadingVideo, setShowLoadingVideo] = useState(false);
   const [, setIframeReady] = useState(false);
@@ -104,6 +109,19 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
         localStorage.removeItem('dxliving_token');
         localStorage.removeItem('dxliving_user');
         setShowLoginForm(true);
+
+        if (response.status === 403) {
+          const data = await response.json().catch(() => ({}));
+          if (data?.code === 'EMAIL_NOT_VERIFIED') {
+            setNeedsEmailVerification(true);
+            setPendingVerifyEmail(typeof data.email === 'string' ? data.email : '');
+            setLoginError(
+              typeof data.error === 'string'
+                ? data.error
+                : 'Please verify your email before continuing.',
+            );
+          }
+        }
       }
     } catch (error) {
       console.error('Token verification error:', error);
@@ -369,6 +387,9 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
     localStorage.removeItem('dxliving_user');
     setShowLoginForm(false);
     setLoginError('');
+    setNeedsEmailVerification(false);
+    setPendingVerifyEmail('');
+    setResendVerificationMessage('');
     setLoginData({ usernameOrEmail: '', password: '', rememberMe: false });
     setIframeReady(false);
     setVideoHasPlayed(false);
@@ -382,12 +403,42 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
       [name]: type === 'checkbox' ? checked : value,
     }));
     setLoginError('');
+    setNeedsEmailVerification(false);
+    setResendVerificationMessage('');
+  };
+
+  const handleResendVerification = async () => {
+    const email =
+      pendingVerifyEmail ||
+      (loginData.usernameOrEmail.includes('@')
+        ? loginData.usernameOrEmail.trim().toLowerCase()
+        : '');
+
+    if (!email) {
+      setResendVerificationMessage('Enter your email address above, then resend.');
+      return;
+    }
+
+    setIsResendingVerification(true);
+    setResendVerificationMessage('');
+    try {
+      await requestEmailVerification(email);
+      setResendVerificationMessage(
+        'If an account exists for that email, a verification link has been sent.',
+      );
+    } catch {
+      setResendVerificationMessage('Could not send verification email. Please try again.');
+    } finally {
+      setIsResendingVerification(false);
+    }
   };
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
     setLoginError('');
+    setNeedsEmailVerification(false);
+    setResendVerificationMessage('');
 
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/login`, {
@@ -428,6 +479,20 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
             await proceedWithAppAccess(app);
           }, 2000);
         }
+      } else if (response.status === 403 && data.code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsEmailVerification(true);
+        setPendingVerifyEmail(
+          typeof data.email === 'string' && data.email
+            ? data.email
+            : loginData.usernameOrEmail.includes('@')
+              ? loginData.usernameOrEmail.trim().toLowerCase()
+              : '',
+        );
+        setLoginError(
+          typeof data.error === 'string'
+            ? data.error
+            : 'Please verify your email before logging in.',
+        );
       } else {
         setLoginError(data.error || 'Login failed. Please check your credentials and try again.');
       }
@@ -537,7 +602,24 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
 
                   {loginError ? (
                     <div className="mb-6 p-4 bg-red-900/50 border border-red-400 text-red-200 rounded">
-                      {loginError}
+                      <p>{loginError}</p>
+                      {needsEmailVerification ? (
+                        <div className="mt-3 space-y-2">
+                          <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={isResendingVerification}
+                            className="text-sm underline text-red-100 hover:text-white disabled:opacity-60"
+                          >
+                            {isResendingVerification
+                              ? 'Sending…'
+                              : 'Resend verification email'}
+                          </button>
+                          {resendVerificationMessage ? (
+                            <p className="text-sm text-red-100/90">{resendVerificationMessage}</p>
+                          ) : null}
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
 
