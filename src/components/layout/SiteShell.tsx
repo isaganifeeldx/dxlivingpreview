@@ -27,7 +27,7 @@ const ChatBox = dynamic(() => import('@/components/chat/ChatBox'), {
   ssr: false,
 });
 
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/thank-you'];
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/thank-you', '/verify-email'];
 
 const HIDE_NAV_PATHS = [
   ...AUTH_PATHS,

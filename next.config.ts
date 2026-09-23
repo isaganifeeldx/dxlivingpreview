@@ -167,6 +167,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/pages/verify-email',
+        destination: '/verify-email',
+        permanent: true,
+      },
+      {
         source: '/pages/start-interactive',
         destination: '/start-interactive',
         permanent: true,
@@ -194,6 +199,7 @@ const nextConfig: NextConfig = {
       { source: '/faq', destination: '/pages/faq' },
       { source: '/login', destination: '/pages/login' },
       { source: '/register', destination: '/pages/register' },
+      { source: '/verify-email', destination: '/pages/verify-email' },
       { source: '/start-interactive', destination: '/pages/start-interactive' },
       {
         source: '/start-interactive/dx-model',

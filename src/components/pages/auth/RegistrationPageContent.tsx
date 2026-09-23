@@ -208,7 +208,7 @@ export default function RegistrationPageContent() {
 
             {submitStatus === 'success' && (
               <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                Account created successfully!{' '}
+                Account created — check your email to verify your address.{' '}
                 {returnTo?.startsWith('/start-interactive')
                   ? 'Returning to the app...'
                   : 'Redirecting to login...'}

@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 export const LOGO_FILL_DARK = '#1F1F1F';
 export const LOGO_FILL_LIGHT = '#F5F5F5';
 
-const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/thank-you']
+const AUTH_PATHS = ['/login', '/register', '/forgot-password', '/thank-you', '/verify-email']
 
 const INTERACTIVE_PATHS = [
   '/start-interactive',
