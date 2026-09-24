@@ -11,6 +11,13 @@ import { buildPathWithReturnTo } from '@/lib/interactive/returnTo';
 import { useIdleTimeout } from '@/hooks/useIdleTimeout';
 import { getApiBaseUrl } from '@/lib/interactive/config';
 import { requestEmailVerification } from '@/lib/auth/verifyEmail';
+import {
+  clearAuthSession,
+  getStoredAuthToken,
+  getStoredAuthUser,
+  loginWithPassword,
+  storeAuthSession,
+} from '@/lib/auth/login';
 
 interface InteractiveAppViewerProps {
   app: InteractiveAppConfig;
@@ -54,8 +61,7 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
     if (document.fullscreenElement) {
       document.exitFullscreen().catch(() => {});
     }
-    localStorage.removeItem('dxliving_token');
-    localStorage.removeItem('dxliving_user');
+    clearAuthSession();
     setShowLoginForm(true);
     setApiStatus('');
     setHasError(false);
@@ -78,7 +84,7 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
 
   useEffect(() => {
     setIdleTimeoutEnabled(
-      !!localStorage.getItem('dxliving_token') && app.id === 'interactive1',
+      !!getStoredAuthToken() && app.id === 'interactive1',
     );
   }, [app.id]);
 
@@ -98,6 +104,34 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
     }
   };
 
+  const startAuthenticatedAppFlow = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setShowLoginForm(false);
+    setIdleTimeoutEnabled(app.id === 'interactive1');
+
+    const isMobileDevice = window.innerWidth < 768;
+    if (isMobileDevice && (app.id === 'interactive1' || app.id === 'interactive2')) {
+      setWaitingForFullscreen(true);
+      setIsLoading(true);
+      return;
+    }
+
+    setShowLoadingVideo(true);
+
+    if (videoTimerRef.current) {
+      clearTimeout(videoTimerRef.current);
+    }
+    videoTimerRef.current = setTimeout(() => {
+      setShowLoadingVideo(false);
+      setIsLoading(false);
+      setVideoHasPlayed(true);
+    }, 30000);
+
+    setTimeout(async () => {
+      await proceedWithAppAccess(app);
+    }, 2000);
+  };
+
   const verifyToken = async (token: string) => {
     try {
       const response = await fetch(`${getApiBaseUrl()}/api/verify-token`, {
@@ -105,22 +139,24 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) {
-        localStorage.removeItem('dxliving_token');
-        localStorage.removeItem('dxliving_user');
-        setShowLoginForm(true);
+      if (response.ok) {
+        startAuthenticatedAppFlow();
+        return;
+      }
 
-        if (response.status === 403) {
-          const data = await response.json().catch(() => ({}));
-          if (data?.code === 'EMAIL_NOT_VERIFIED') {
-            setNeedsEmailVerification(true);
-            setPendingVerifyEmail(typeof data.email === 'string' ? data.email : '');
-            setLoginError(
-              typeof data.error === 'string'
-                ? data.error
-                : 'Please verify your email before continuing.',
-            );
-          }
+      clearAuthSession();
+      setShowLoginForm(true);
+
+      if (response.status === 403) {
+        const data = await response.json().catch(() => ({}));
+        if (data?.code === 'EMAIL_NOT_VERIFIED') {
+          setNeedsEmailVerification(true);
+          setPendingVerifyEmail(typeof data.email === 'string' ? data.email : '');
+          setLoginError(
+            typeof data.error === 'string'
+              ? data.error
+              : 'Please verify your email before continuing.',
+          );
         }
       }
     } catch (error) {
@@ -134,8 +170,8 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
 
     if (app.id === 'interactive1') {
       setShowLoginForm(true);
-      const token = localStorage.getItem('dxliving_token');
-      const user = localStorage.getItem('dxliving_user');
+      const token = getStoredAuthToken();
+      const user = getStoredAuthUser();
       if (token && user) {
         verifyToken(token);
       }
@@ -328,7 +364,7 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
 
     try {
       if (appConfig.id === 'interactive1') {
-        const token = localStorage.getItem('dxliving_token');
+        const token = getStoredAuthToken();
         if (!token) {
           throw new Error('Authentication required for DX Model');
         }
@@ -383,8 +419,7 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('dxliving_token');
-    localStorage.removeItem('dxliving_user');
+    clearAuthSession();
     setShowLoginForm(false);
     setLoginError('');
     setNeedsEmailVerification(false);
@@ -441,60 +476,22 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
     setResendVerificationMessage('');
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          usernameOrEmail: loginData.usernameOrEmail,
-          password: loginData.password,
-        }),
-      });
+      const result = await loginWithPassword(loginData.usernameOrEmail, loginData.password);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem('dxliving_token', data.token);
-        localStorage.setItem('dxliving_user', JSON.stringify(data.user));
-
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        setShowLoginForm(false);
-
-        const isMobileDevice = window.innerWidth < 768;
-        if (isMobileDevice && (app.id === 'interactive1' || app.id === 'interactive2')) {
-          setWaitingForFullscreen(true);
-          setIsLoading(true);
-        } else {
-          setShowLoadingVideo(true);
-
-          if (videoTimerRef.current) {
-            clearTimeout(videoTimerRef.current);
-          }
-          videoTimerRef.current = setTimeout(() => {
-            setShowLoadingVideo(false);
-            setIsLoading(false);
-            setVideoHasPlayed(true);
-          }, 30000);
-
-          setTimeout(async () => {
-            await proceedWithAppAccess(app);
-          }, 2000);
-        }
-      } else if (response.status === 403 && data.code === 'EMAIL_NOT_VERIFIED') {
+      if (result.ok) {
+        storeAuthSession(result.token, result.user);
+        startAuthenticatedAppFlow();
+      } else if (result.code === 'EMAIL_NOT_VERIFIED') {
         setNeedsEmailVerification(true);
         setPendingVerifyEmail(
-          typeof data.email === 'string' && data.email
-            ? data.email
-            : loginData.usernameOrEmail.includes('@')
+          result.email ||
+            (loginData.usernameOrEmail.includes('@')
               ? loginData.usernameOrEmail.trim().toLowerCase()
-              : '',
+              : ''),
         );
-        setLoginError(
-          typeof data.error === 'string'
-            ? data.error
-            : 'Please verify your email before logging in.',
-        );
+        setLoginError(result.message);
       } else {
-        setLoginError(data.error || 'Login failed. Please check your credentials and try again.');
+        setLoginError(result.message);
       }
     } catch (error) {
       console.error('Login error:', error);

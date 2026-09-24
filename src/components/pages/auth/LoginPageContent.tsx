@@ -1,27 +1,39 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { usePageAnimations } from '@/lib/utils/animations'
 import { useScrollToTop } from '@/lib/utils/scrollToTop'
 import AnimatedButton from '@/components/ui/AnimatedButton'
 import VimeoEmbed from '@/components/ui/VimeoEmbed'
+import { loginWithPassword, POST_LOGIN_PATH, storeAuthSession } from '@/lib/auth/login'
+import { requestEmailVerification } from '@/lib/auth/verifyEmail'
+import { warmupInteractiveLoginApi } from '@/lib/interactive/config'
 
 type SubmitStatus = 'idle' | 'success' | 'error'
 
 export default function LoginPageContent() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    email: '',
+    usernameOrEmail: '',
     password: '',
     rememberMe: false,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<SubmitStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false)
+  const [pendingVerifyEmail, setPendingVerifyEmail] = useState('')
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [resendVerificationMessage, setResendVerificationMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
   useScrollToTop()
   usePageAnimations(false)
+
+  useEffect(() => {
+    void warmupInteractiveLoginApi('LOGIN')
+  }, [])
 
   const navigate = (path: string) => {
     const win = window as Window & { navigateWithTransition?: (targetPath: string) => void }
@@ -38,18 +50,75 @@ export default function LoginPageContent() {
       ...previous,
       [name]: type === 'checkbox' ? checked : value,
     }))
+    setSubmitStatus('idle')
+    setErrorMessage('')
+    setNeedsEmailVerification(false)
+    setResendVerificationMessage('')
+  }
+
+  const handleResendVerification = async () => {
+    const email =
+      pendingVerifyEmail ||
+      (formData.usernameOrEmail.includes('@')
+        ? formData.usernameOrEmail.trim().toLowerCase()
+        : '')
+
+    if (!email) {
+      setResendVerificationMessage('Enter your email address above, then resend.')
+      return
+    }
+
+    setIsResendingVerification(true)
+    setResendVerificationMessage('')
+    try {
+      await requestEmailVerification(email)
+      setResendVerificationMessage(
+        'If an account exists for that email, a verification link has been sent.',
+      )
+    } catch {
+      setResendVerificationMessage('Could not send verification email. Please try again.')
+    } finally {
+      setIsResendingVerification(false)
+    }
   }
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     setIsSubmitting(true)
     setSubmitStatus('idle')
+    setErrorMessage('')
+    setNeedsEmailVerification(false)
+    setResendVerificationMessage('')
 
-    // Stub only — reference1 had no real auth/DB connection.
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    try {
+      const result = await loginWithPassword(formData.usernameOrEmail, formData.password)
 
-    setIsSubmitting(false)
-    setSubmitStatus('error')
+      if (result.ok) {
+        storeAuthSession(result.token, result.user)
+        setSubmitStatus('success')
+        navigate(POST_LOGIN_PATH)
+        return
+      }
+
+      if (result.code === 'EMAIL_NOT_VERIFIED') {
+        setNeedsEmailVerification(true)
+        setPendingVerifyEmail(
+          result.email ||
+            (formData.usernameOrEmail.includes('@')
+              ? formData.usernameOrEmail.trim().toLowerCase()
+              : ''),
+        )
+      }
+
+      setSubmitStatus('error')
+      setErrorMessage(result.message)
+    } catch (error) {
+      console.error('Login error:', error)
+      setSubmitStatus('error')
+      setErrorMessage('Connection error. Please check your internet connection and try again.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -64,27 +133,43 @@ export default function LoginPageContent() {
 
             {submitStatus === 'success' && (
               <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-                Logged in successfully.
+                Logged in successfully. Opening DX Model…
               </div>
             )}
 
             {submitStatus === 'error' && (
               <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                Invalid credentials. Please check your email and password and try again.
+                <p>{errorMessage}</p>
+                {needsEmailVerification ? (
+                  <div className="mt-3 space-y-2">
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={isResendingVerification}
+                      className="text-sm underline text-red-700 hover:text-red-900 disabled:opacity-60 bg-transparent border-none cursor-pointer p-0"
+                    >
+                      {isResendingVerification ? 'Sending…' : 'Resend verification email'}
+                    </button>
+                    {resendVerificationMessage ? (
+                      <p className="text-sm text-red-700/90">{resendVerificationMessage}</p>
+                    ) : null}
+                  </div>
+                ) : null}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
+                  type="text"
+                  id="usernameOrEmail"
+                  name="usernameOrEmail"
+                  value={formData.usernameOrEmail}
                   onChange={handleInputChange}
                   required
+                  autoComplete="username"
                   className="bg-transparent border-b border-[#2A3040] px-0 py-2 w-full placeholder:text-[#bfb6ad] focus:outline-none"
-                  placeholder="Email Address"
+                  placeholder="Username or Email Address"
                 />
               </div>
 
@@ -96,6 +181,7 @@ export default function LoginPageContent() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
+                  autoComplete="current-password"
                   className="bg-transparent border-b border-[#2A3040] px-0 py-2 w-full pr-8 placeholder:text-[#bfb6ad] focus:outline-none"
                   placeholder="Password"
                 />
@@ -171,6 +257,7 @@ export default function LoginPageContent() {
                   dataAnimation="fade"
                   dataDelay="0.2"
                   dataDuration="0.8"
+                  disabled={isSubmitting}
                 >
                   {isSubmitting ? 'Signing In...' : 'Login'}
                 </AnimatedButton>

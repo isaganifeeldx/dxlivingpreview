@@ -3,12 +3,8 @@
 import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import AnimatedButton from '@/components/ui/AnimatedButton'
-import {
-  INTERACTIVE_APPS,
-  getInteractiveAppPath,
-  type InteractiveAppConfig,
-} from '@/data/interactiveApps'
-import { INTERACTIVE_LOGIN_API_URL } from '@/lib/interactive/config'
+import { INTERACTIVE_APPS, getInteractiveAppPath, type InteractiveAppConfig } from '@/data/interactiveApps'
+import { warmupInteractiveLoginApi } from '@/lib/interactive/config'
 import { useInteractivePageSetup } from '@/lib/interactive/useInteractivePageSetup'
 
 const StartInteractivePageContent: React.FC = () => {
@@ -16,21 +12,7 @@ const StartInteractivePageContent: React.FC = () => {
   useInteractivePageSetup()
 
   useEffect(() => {
-    const makeLoginCall = async () => {
-      try {
-        const loginResponse = await fetch(INTERACTIVE_LOGIN_API_URL, { method: 'POST' })
-        if (!loginResponse.ok) {
-          const errorText = await loginResponse.text()
-          console.error(
-            `[START-INTERACTIVE] Login API request failed: ${loginResponse.status} - ${errorText}`,
-          )
-        }
-      } catch (error) {
-        console.error('[START-INTERACTIVE] Login API request error:', error)
-      }
-    }
-
-    makeLoginCall()
+    void warmupInteractiveLoginApi('START-INTERACTIVE')
   }, [])
 
   const navigateToPath = (path: string) => {
