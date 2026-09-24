@@ -691,6 +691,15 @@ const InteractiveAppViewer: React.FC<InteractiveAppViewerProps> = ({ app, onBack
                       </button>
                     </div>
 
+                    <div className="flex justify-end">
+                      <a
+                        href="/forgot-password"
+                        className="steal-slate-color hover:text-[#bfb6ad] transition-colors underline text-sm"
+                      >
+                        Forgot password?
+                      </a>
+                    </div>
+
                     <div className="pt-4">
                       <AnimatedButton
                         type="submit"

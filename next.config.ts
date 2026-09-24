@@ -172,6 +172,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/pages/forgot-password',
+        destination: '/forgot-password',
+        permanent: true,
+      },
+      {
+        source: '/pages/reset-password',
+        destination: '/reset-password',
+        permanent: true,
+      },
+      {
         source: '/pages/start-interactive',
         destination: '/start-interactive',
         permanent: true,
@@ -200,6 +210,8 @@ const nextConfig: NextConfig = {
       { source: '/login', destination: '/pages/login' },
       { source: '/register', destination: '/pages/register' },
       { source: '/verify-email', destination: '/pages/verify-email' },
+      { source: '/forgot-password', destination: '/pages/forgot-password' },
+      { source: '/reset-password', destination: '/pages/reset-password' },
       { source: '/start-interactive', destination: '/pages/start-interactive' },
       {
         source: '/start-interactive/dx-model',
