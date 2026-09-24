@@ -71,13 +71,19 @@ export default function ForgotPasswordPageContent() {
           {status === 'success' ? (
             <div className="text-center">
               <p className="black text-gray-700 mb-8">{message}</p>
-              <AnimatedButton
-                href="/login"
-                className="button white-bg text-sm m-auto uppercase"
-                skipEntranceAnimation
-              >
-                Back to login
-              </AnimatedButton>
+              <div className="pt-4">
+                <AnimatedButton
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="uppercase relative full-width mx-auto white-bg"
+                  dataAnimation="fade"
+                  dataDelay="0.2"
+                  dataDuration="0.8"
+                  skipEntranceAnimation
+                >
+                  Back to login
+                </AnimatedButton>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -110,7 +116,7 @@ export default function ForgotPasswordPageContent() {
                 ) : null}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-4">
                 <AnimatedButton
                   type="submit"
                   className="uppercase relative full-width mx-auto white-bg"
@@ -123,7 +129,7 @@ export default function ForgotPasswordPageContent() {
                 </AnimatedButton>
               </div>
 
-              <div className="text-center pt-2">
+              <div className="text-center pt-4">
                 <button
                   type="button"
                   onClick={() => navigate('/login')}

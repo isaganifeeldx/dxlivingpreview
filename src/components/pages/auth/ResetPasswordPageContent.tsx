@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import AnimatedButton from '@/components/ui/AnimatedButton'
 import {
   confirmPasswordReset,
@@ -24,6 +23,7 @@ import { useScrollToTop } from '@/lib/utils/scrollToTop'
 type Status = 'checking' | 'form' | 'loading' | 'success' | 'error'
 
 export default function ResetPasswordPageContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const token = (searchParams.get('token') || '').trim()
 
@@ -32,7 +32,7 @@ export default function ResetPasswordPageContent() {
   const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState<Status>(token ? 'checking' : 'error')
   const [message, setMessage] = useState(
-    token ? 'Checking reset link…' : 'This reset link is missing a token. Please request a new one.',
+    token ? 'Checking reset link…' : 'This reset link is missing a token.',
   )
   const [errorCode, setErrorCode] = useState<string | undefined>(
     token ? undefined : 'TOKEN_INVALID',
@@ -42,6 +42,15 @@ export default function ResetPasswordPageContent() {
 
   useScrollToTop()
   usePageAnimations(false)
+
+  const navigate = (path: string) => {
+    const win = window as Window & { navigateWithTransition?: (targetPath: string) => void }
+    if (win.navigateWithTransition) {
+      win.navigateWithTransition(path)
+      return
+    }
+    router.push(path)
+  }
 
   useEffect(() => {
     if (!token) return
@@ -115,26 +124,37 @@ export default function ResetPasswordPageContent() {
           {status === 'success' ? (
             <div className="text-center">
               <p className="black text-gray-700 mb-8">{message}</p>
-              <AnimatedButton
-                href="/login"
-                className="button white-bg text-sm m-auto uppercase"
-                skipEntranceAnimation
-              >
-                Continue to login
-              </AnimatedButton>
+              <div className="pt-4">
+                <AnimatedButton
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="uppercase relative full-width mx-auto white-bg"
+                  dataAnimation="fade"
+                  dataDelay="0.2"
+                  dataDuration="0.8"
+                  skipEntranceAnimation
+                >
+                  Continue to login
+                </AnimatedButton>
+              </div>
             </div>
           ) : null}
 
           {showTerminalError ? (
             <div className="text-center">
               <p className="black text-gray-700 mb-8">{message}</p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link href="/forgot-password" className="button white-bg text-sm uppercase px-4 py-2">
-                  Request a new link
-                </Link>
-                <Link href="/login" className="button white-bg text-sm uppercase px-4 py-2">
+              <div className="pt-4">
+                <AnimatedButton
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className="uppercase relative full-width mx-auto white-bg"
+                  dataAnimation="fade"
+                  dataDelay="0.2"
+                  dataDuration="0.8"
+                  skipEntranceAnimation
+                >
                   Go to login
-                </Link>
+                </AnimatedButton>
               </div>
             </div>
           ) : null}
@@ -258,7 +278,7 @@ export default function ResetPasswordPageContent() {
                 ) : null}
               </div>
 
-              <div className="pt-2">
+              <div className="pt-4">
                 <AnimatedButton
                   type="submit"
                   className="uppercase relative full-width mx-auto white-bg"
