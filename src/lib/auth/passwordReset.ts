@@ -4,6 +4,12 @@ export type PasswordResetResult =
   | { ok: true; message: string }
   | { ok: false; code: string; message: string }
 
+const TERMINAL_TOKEN_CODES = new Set(['TOKEN_INVALID', 'TOKEN_USED', 'TOKEN_EXPIRED'])
+
+export function isTerminalTokenError(code: string): boolean {
+  return TERMINAL_TOKEN_CODES.has(code)
+}
+
 function readErrorPayload(
   data: unknown,
   fallbackMessage: string,
@@ -48,6 +54,28 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
       : 'If an account exists for that email, a password reset link has been sent.'
 
   return { ok: true, message }
+}
+
+export async function validatePasswordResetToken(
+  token: string,
+): Promise<PasswordResetResult> {
+  const response = await fetch(`${getApiBaseUrl()}/api/reset-password/validate`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  })
+
+  const data = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    const { code, message } = readErrorPayload(
+      data,
+      'This reset link is invalid or has expired.',
+    )
+    return { ok: false, code, message }
+  }
+
+  return { ok: true, message: 'Reset link is valid.' }
 }
 
 export async function confirmPasswordReset(

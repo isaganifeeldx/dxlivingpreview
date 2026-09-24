@@ -1,10 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import AnimatedButton from '@/components/ui/AnimatedButton'
-import { confirmPasswordReset } from '@/lib/auth/passwordReset'
+import {
+  confirmPasswordReset,
+  isTerminalTokenError,
+  validatePasswordResetToken,
+} from '@/lib/auth/passwordReset'
 import {
   getPasswordRequirements,
   PASSWORD_REQUIREMENT_LABELS,
@@ -17,7 +21,7 @@ import {
 import { usePageAnimations } from '@/lib/utils/animations'
 import { useScrollToTop } from '@/lib/utils/scrollToTop'
 
-type Status = 'form' | 'loading' | 'success' | 'error'
+type Status = 'checking' | 'form' | 'loading' | 'success' | 'error'
 
 export default function ResetPasswordPageContent() {
   const searchParams = useSearchParams()
@@ -26,9 +30,12 @@ export default function ResetPasswordPageContent() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [status, setStatus] = useState<Status>(token ? 'form' : 'error')
+  const [status, setStatus] = useState<Status>(token ? 'checking' : 'error')
   const [message, setMessage] = useState(
-    token ? '' : 'This reset link is missing a token. Please request a new one.',
+    token ? 'Checking reset link…' : 'This reset link is missing a token. Please request a new one.',
+  )
+  const [errorCode, setErrorCode] = useState<string | undefined>(
+    token ? undefined : 'TOKEN_INVALID',
   )
   const [passwordError, setPasswordError] = useState<string | undefined>()
   const [confirmError, setConfirmError] = useState<string | undefined>()
@@ -36,7 +43,34 @@ export default function ResetPasswordPageContent() {
   useScrollToTop()
   usePageAnimations(false)
 
+  useEffect(() => {
+    if (!token) return
+
+    let cancelled = false
+
+    ;(async () => {
+      const result = await validatePasswordResetToken(token)
+      if (cancelled) return
+      if (result.ok) {
+        setStatus('form')
+        setMessage('')
+        setErrorCode(undefined)
+        return
+      }
+      setStatus('error')
+      setMessage(result.message)
+      setErrorCode(result.code)
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [token])
+
   const requirements = getPasswordRequirements(password)
+  const showForm = status === 'form' || status === 'loading'
+  const showTerminalError =
+    status === 'error' && (!token || (errorCode != null && isTerminalTokenError(errorCode)))
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -55,11 +89,13 @@ export default function ResetPasswordPageContent() {
     if (result.ok) {
       setStatus('success')
       setMessage(result.message)
+      setErrorCode(undefined)
       return
     }
 
     setStatus('error')
     setMessage(result.message)
+    setErrorCode(result.code)
   }
 
   return (
@@ -68,8 +104,11 @@ export default function ResetPasswordPageContent() {
         <div className="w-full max-w-[500px]">
           <div className="text-center mb-8">
             <h1 className="heading-small black">Reset password</h1>
-            {status === 'form' || status === 'loading' ? (
+            {showForm ? (
               <p className="black mt-2 text-gray-600">Choose a new password for your account.</p>
+            ) : null}
+            {status === 'checking' ? (
+              <p className="black mt-2 text-gray-600">{message}</p>
             ) : null}
           </div>
 
@@ -86,7 +125,7 @@ export default function ResetPasswordPageContent() {
             </div>
           ) : null}
 
-          {status === 'error' && !token ? (
+          {showTerminalError ? (
             <div className="text-center">
               <p className="black text-gray-700 mb-8">{message}</p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -100,19 +139,20 @@ export default function ResetPasswordPageContent() {
             </div>
           ) : null}
 
-          {status === 'error' && token ? (
-            <div className="text-center mb-8">
-              <p className="black text-gray-700 mb-4">{message}</p>
-              <Link
-                href="/forgot-password"
-                className="steal-slate-color underline text-sm"
-              >
-                Request a new reset link
-              </Link>
+          {status === 'error' &&
+          token &&
+          errorCode &&
+          !isTerminalTokenError(errorCode) ? (
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded text-sm">
+              {message}
             </div>
           ) : null}
 
-          {(status === 'form' || status === 'loading' || (status === 'error' && token)) &&
+          {(showForm ||
+            (status === 'error' &&
+              token &&
+              errorCode != null &&
+              !isTerminalTokenError(errorCode))) &&
           token ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="relative">
