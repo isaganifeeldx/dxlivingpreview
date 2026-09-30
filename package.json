@@ -29,6 +29,7 @@
     "seed:article-categories": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-article-categories.ts",
     "seed:articles": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-articles.ts",
     "seed:articles-from-wp": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-articles-from-wp.ts",
+    "seed:articles-from-wp:all": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-articles-from-wp.ts --all",
     "wipe:articles": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/wipe-articles.ts",
     "seed:projects-page": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-projects-page.ts",
     "seed:projects": "node --require ./scripts/patch-next-env.cjs --import tsx scripts/seed-projects.ts",

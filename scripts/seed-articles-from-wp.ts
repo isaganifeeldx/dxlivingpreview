@@ -6,10 +6,14 @@
  *
  * Usage:
  *   npm run seed:articles-from-wp
+ *   npm run seed:articles-from-wp:all
  *   npm run seed:articles-from-wp -- --slug=before-you-sign-with-a-builder-checklist
  *   npm run seed:articles-from-wp -- --limit=1
  *   npm run seed:articles-from-wp -- --all
  *   npm run seed:articles-from-wp -- --limit=95
+ *
+ * On Windows PowerShell, extra args after `--` are often dropped by npm.ps1.
+ * Prefer `npm run seed:articles-from-wp:all`, or use `npm.cmd run ... -- --all`.
  *
  * Requires DATABASE_URI + PAYLOAD_SECRET and Blob or S3 (not local disk against remote DB).
  * Fetches WP categories first and upserts any missing ones into Payload.
@@ -494,7 +498,11 @@ async function fetchAllWpPosts(): Promise<WpPost[]> {
 }
 
 async function main() {
-  const { slug, limit, all } = parseArgs(process.argv.slice(2))
+  const argv = process.argv.slice(2)
+  const { slug, limit, all } = parseArgs(argv)
+  console.log(
+    `seed:articles-from-wp args: ${argv.length ? argv.join(' ') : '(none — default limit=1)'}`,
+  )
   const { getPayload } = await import('payload')
   const { default: config } = await import('../src/payload.config')
 
