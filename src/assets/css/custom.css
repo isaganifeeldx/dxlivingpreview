@@ -247,6 +247,14 @@
   display: none !important;
 }
 
+/* WP EasyTOC hid this with inline style; our sanitizer strips style attrs */
+.article-content .eztoc-hide,
+.article-content .ez-toc-title-toggle,
+.article-content .ez-toc-js-icon-con,
+.article-content .ez-toc-icon-toggle-span {
+  display: none !important;
+}
+
 .legal-content {
   color: var(--black, #2a3040);
 }

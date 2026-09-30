@@ -73,6 +73,14 @@ function stripExistingTocMarkup(html: string): string {
     },
   )
 
+  // EasyTOC accessibility label that relied on style="display:none"
+  next = next.replace(
+    /<(span|a)\b[^>]*(?:eztoc-hide|ez-toc-toggle|ez-toc-title-toggle)[^>]*>[\s\S]*?<\/\1>/gi,
+    '',
+  )
+  next = next.replace(/>\s*Toggle\s*</gi, '><')
+  next = next.replace(/(^|>)\s*Toggle\s*(<|$)/gi, '$1$2')
+
   return next.replace(/^\s+/, '')
 }
 
