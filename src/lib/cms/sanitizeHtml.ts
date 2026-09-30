@@ -43,7 +43,12 @@ if (!hookState.__dxlivingCmsSanitizerHookInstalled) {
 
     const safeClasses = data.attrValue
       .split(/\s+/)
-      .filter((className) => allowedCmsClasses.has(className));
+      .filter(
+        (className) =>
+          allowedCmsClasses.has(className) ||
+          className.startsWith('ez-toc') ||
+          className.startsWith('ez-toc-'),
+      )
 
     if (safeClasses.length === 0) {
       data.keepAttr = false;
@@ -134,6 +139,7 @@ const articleSanitizeConfig: Config = {
     'colgroup',
     'col',
     'div',
+    'nav',
   ],
   ALLOWED_ATTR: [
     'class',

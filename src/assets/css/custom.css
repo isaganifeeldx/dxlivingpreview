@@ -184,11 +184,17 @@
 	text-transform: uppercase;
 }
 
-.article-content img {
+.article-content .prose img,
+.article-content .resource-content .prose img {
 	display: block;
 	width: 100%;
 	height: auto;
 	margin-bottom: 50px;
+}
+
+/* Featured hero keeps Tailwind h-[400px]/lg:h-[700px] — do not force height:auto */
+.article-content img.article-featured-image {
+	margin-bottom: 0;
 }
 
 .article-content #ez-toc-container.ez-toc-transparent {

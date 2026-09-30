@@ -4,6 +4,7 @@ import { getPayloadPopulateFn } from '@payloadcms/richtext-lexical'
 import type { SerializedEditorState } from '@payloadcms/richtext-lexical/lexical'
 import type { Payload } from 'payload'
 import { sanitizeArticleHtml } from '@/lib/cms/sanitizeHtml'
+import { ensureArticleTableOfContents } from '@/lib/articles/ensureArticleToc'
 
 function isLexicalState(value: unknown): value is SerializedEditorState {
   return (
@@ -67,7 +68,7 @@ export function normalizeArticleBodyHtml(html: string): string {
 }
 
 function finalizeArticleHtml(html: string): string {
-  return sanitizeArticleHtml(normalizeArticleBodyHtml(html))
+  return sanitizeArticleHtml(ensureArticleTableOfContents(normalizeArticleBodyHtml(html)))
 }
 
 /** Sync convert for static HTML fallbacks (no Media population needed). */

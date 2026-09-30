@@ -190,7 +190,7 @@ const ArticlePageContent: React.FC<ArticlePageContentProps> = ({
             alt={article.title}
             loading="lazy"
             decoding="async"
-            className="h-[400px] lg:h-[700px] w-full rounded-[10px] object-cover object-center"
+            className="article-featured-image h-[400px] lg:h-[700px] w-full rounded-[10px] object-cover object-center"
           />
         </section>
       ) : null}
