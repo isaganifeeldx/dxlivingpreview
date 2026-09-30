@@ -40,7 +40,18 @@ export const usePreload = ({ skipIntroForBot = false }: UsePreloadOptions = {}) 
     const hasSeenIntro = window.localStorage.getItem(INTRO_SEEN_KEY) === 'true';
     const skipIntroForPath = isIntroSkippedPath(landingPath);
 
-    if (hasSeenIntro || skipIntroForPath) {
+    // Articles listing/detail: skip intro AND the logo preloader. Waiting on the
+    // banner Vimeo deadlocks (hero gate waits for shellReady; shellReady waits
+    // for preload exit) and leaves a z-index 99999 overlay blocking clicks.
+    if (skipIntroForPath) {
+      setIsIntroPlaying(false);
+      setIsPreloading(false);
+      setHasPreloaded(true);
+      setIsHydrated(true);
+      return;
+    }
+
+    if (hasSeenIntro) {
       setIsIntroPlaying(false);
       setIsPreloading(true);
     } else {

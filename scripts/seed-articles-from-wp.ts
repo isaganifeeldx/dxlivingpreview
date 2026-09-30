@@ -35,6 +35,7 @@ import {
   FALLBACK_ARTICLE_CATEGORIES,
   LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG,
 } from '../src/lib/articles/categoryDefs'
+import { stripArticleTocMarkup } from '../src/lib/articles/ensureArticleToc'
 import { getMediaStorageMode } from '../src/lib/cms/mediaStorage'
 
 loadDotenv({ path: '.env.local', quiet: true })
@@ -199,6 +200,9 @@ function normalizeArticleContent(content: string) {
     '/$1',
   )
 
+  // Drop WP EasyTOC — public pages rebuild TOC from h2/h3 via ensureArticleTableOfContents.
+  normalized = stripArticleTocMarkup(normalized)
+
   return normalized
 }
 
@@ -354,18 +358,37 @@ function filenameFromUrl(url: string): string {
   return `wp-image-${Date.now()}.jpg`
 }
 
+/** Media.formatOptions converts rasters to .webp — look up both original + webp names. */
+function filenameCandidates(filename: string): string[] {
+  const base = path.basename(filename)
+  const stem = base.replace(/\.[^.]+$/, '')
+  return [...new Set([base, `${stem}.webp`, `${stem}.png`, `${stem}.jpg`, `${stem}.jpeg`])]
+}
+
+function incrementFilename(name: string): string {
+  const dot = name.lastIndexOf('.')
+  const base = dot === -1 ? name : name.slice(0, dot)
+  const ext = dot === -1 ? '' : name.slice(dot)
+  const match = base.match(/^(.*)-(\d+)$/)
+  if (!match) return `${base}-1${ext}`
+  return `${match[1]}-${Number(match[2]) + 1}${ext}`
+}
+
 async function findExistingMediaId(
   payload: Payload,
   filename: string,
 ): Promise<number | string | null> {
-  const found = await payload.find({
-    collection: 'media',
-    depth: 0,
-    limit: 1,
-    where: { filename: { equals: filename } },
-    overrideAccess: true,
-  })
-  return found.docs[0]?.id ?? null
+  for (const candidate of filenameCandidates(filename)) {
+    const found = await payload.find({
+      collection: 'media',
+      depth: 0,
+      limit: 1,
+      where: { filename: { equals: candidate } },
+      overrideAccess: true,
+    })
+    if (found.docs[0]) return found.docs[0].id
+  }
+  return null
 }
 
 async function ensureRemoteMedia(
@@ -390,32 +413,53 @@ async function ensureRemoteMedia(
   }
 
   const buffer = Buffer.from(await response.arrayBuffer())
-  const tmpPath = path.join(tmpDir, filename)
-  fs.writeFileSync(tmpPath, buffer)
-
   const alt = filename
     .replace(/\.[^.]+$/, '')
     .replace(/[-_]+/g, ' ')
     .trim()
 
-  try {
-    const created = await payload.create({
-      collection: 'media',
-      data: { alt: alt || 'Article image' },
-      filePath: tmpPath,
-      overrideAccess: true,
-      overwriteExistingFiles: true,
-    })
-    cache.set(remoteUrl, created.id)
-    console.log(`Uploaded media: ${filename} → ${created.id}`)
-    return created.id
-  } finally {
+  // Prefer writing as .webp stem for lookup consistency with Media.formatOptions.
+  let attemptName = filename
+  let lastError: unknown
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const tmpPath = path.join(tmpDir, attemptName)
+    fs.writeFileSync(tmpPath, buffer)
     try {
-      fs.unlinkSync(tmpPath)
-    } catch {
-      // ignore
+      const created = await payload.create({
+        collection: 'media',
+        data: { alt: alt || 'Article image' },
+        filePath: tmpPath,
+        overrideAccess: true,
+        overwriteExistingFiles: true,
+      })
+      cache.set(remoteUrl, created.id)
+      console.log(`Uploaded media: ${attemptName} → ${created.id}`)
+      return created.id
+    } catch (error) {
+      lastError = error
+      const message = error instanceof Error ? error.message : String(error)
+      // Unique filename collision after webp conversion / prior seed — bump and retry.
+      if (/filename/i.test(message)) {
+        attemptName = incrementFilename(attemptName)
+        continue
+      }
+      console.warn(`Failed to upload media ${attemptName} from ${remoteUrl}:`, message)
+      return null
+    } finally {
+      try {
+        fs.unlinkSync(tmpPath)
+      } catch {
+        // ignore
+      }
     }
   }
+
+  console.warn(
+    `Failed to upload media after retries (${filename}) from ${remoteUrl}:`,
+    lastError instanceof Error ? lastError.message : lastError,
+  )
+  return null
 }
 
 function attachUploadIdsToHtml(

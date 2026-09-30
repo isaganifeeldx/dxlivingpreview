@@ -44,22 +44,34 @@ const PreloadLogo: React.FC<PreloadLogoProps> = ({
     exitingRef.current = true;
     overlay.style.pointerEvents = 'none';
 
-    gsap.to(overlay, {
-      opacity: 0,
-      duration: 0.35,
-      ease: 'power2.in',
-      onComplete: () => {
-        gsap.to(overlay, {
-          y: '100vh',
-          duration: 0.45,
-          ease: 'power2.inOut',
-          onComplete: () => {
-            restorePageScroll();
-            onAnimationCompleteRef.current?.();
-          },
-        });
-      },
-    });
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      restorePageScroll();
+      onAnimationCompleteRef.current?.();
+    };
+
+    try {
+      gsap.to(overlay, {
+        opacity: 0,
+        duration: 0.35,
+        ease: 'power2.in',
+        onComplete: () => {
+          gsap.to(overlay, {
+            y: '100vh',
+            duration: 0.45,
+            ease: 'power2.inOut',
+            onComplete: finish,
+          });
+        },
+      });
+    } catch {
+      finish();
+    }
+
+    // Hard failsafe: never leave the z-[99999] overlay mounted if GSAP stalls.
+    window.setTimeout(finish, 2000);
   }, [restorePageScroll]);
 
   useEffect(() => {

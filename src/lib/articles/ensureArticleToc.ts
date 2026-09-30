@@ -41,7 +41,7 @@ type TocHeading = {
 }
 
 /** Remove EasyTOC blocks and Lexical leftovers that duplicate the TOC. */
-function stripExistingTocMarkup(html: string): string {
+export function stripArticleTocMarkup(html: string): string {
   let next = html
 
   // Full EasyTOC container (balanced-ish: non-greedy until closing div after nav/ul)
@@ -90,7 +90,7 @@ function stripExistingTocMarkup(html: string): string {
 export function ensureArticleTableOfContents(html: string): string {
   if (!html?.trim()) return html
 
-  const withoutOldToc = stripExistingTocMarkup(html)
+  const withoutOldToc = stripArticleTocMarkup(html)
   const usedIds = new Map<string, number>()
   const headings: TocHeading[] = []
 
