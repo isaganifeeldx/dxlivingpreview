@@ -17,10 +17,13 @@
 
 # production
 /build
+/dist
 
-# misc
+# misc / OS
 .DS_Store
+Thumbs.db
 *.pem
+*.log
 
 # local reference implementations (not part of the app build)
 /reference
@@ -31,15 +34,26 @@
 # local planning / proposal docs (not part of the app build)
 /docs
 
+# agent / scratch dumps (never commit)
+.tmp*
+.tmp-*/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files (keep only the template)
 .env*
 !.env.example
+
+# vercel / editors (local)
+.vercel
+.idea
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # payload local uploads
 /media
