@@ -1,5 +1,5 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
-import { slugField } from 'payload'
+import type { CollectionBeforeChangeHook, CollectionConfig, Where } from 'payload'
+import { APIError, slugField } from 'payload'
 import { adminOnlyApiView } from '@/access'
 import { seoFields } from '@/fields/seo'
 import {
@@ -7,6 +7,7 @@ import {
   revalidateArticleAfterDelete,
 } from '@/hooks/revalidateCms'
 import { articlePreview } from '@/lib/cms/previewUrl'
+import { deleteArticles } from '@/lib/cms/wipeArticles'
 
 /** When publishing, fill Publish date if the editor left it blank. */
 const setPublishedAtOnPublish: CollectionBeforeChangeHook = ({ data, originalDoc }) => {
@@ -28,12 +29,16 @@ export const Articles: CollectionConfig = {
     singular: 'Article',
     plural: 'Articles',
   },
+  // Built-in REST bulk-delete is unreliable with drafts (ghost “ID null” rows).
+  // Selection-based delete is handled by BulkDeleteArticlesButton + /bulk-delete.
+  disableBulkDelete: true,
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'category', '_status', 'publishedAt', 'updatedAt'],
     description: 'Journal articles for the public Articles listing and detail pages.',
     preview: articlePreview,
     components: {
+      beforeListTable: ['/components/payload/BulkDeleteArticlesButton'],
       views: {
         edit: adminOnlyApiView,
       },
@@ -45,6 +50,54 @@ export const Articles: CollectionConfig = {
       validate: false,
     },
   },
+  endpoints: [
+    {
+      path: '/bulk-delete',
+      method: 'post',
+      handler: async (req) => {
+        if (!req.user) {
+          throw new APIError('Unauthorized', 401)
+        }
+
+        const body = (await req.json?.()) as {
+          ids?: Array<number | string>
+          allMatching?: boolean
+          where?: Where
+        } | null
+
+        const ids = Array.isArray(body?.ids) ? body.ids : []
+        const allMatching = Boolean(body?.allMatching)
+
+        if (!allMatching && ids.length === 0) {
+          throw new APIError('Select at least one article to delete.', 400)
+        }
+
+        const result = await deleteArticles({
+          payload: req.payload,
+          req,
+          overrideAccess: false,
+          ids,
+          allMatching,
+          where: body?.where,
+        })
+
+        if (result.deleted === 0 && result.failed > 0) {
+          return Response.json(
+            {
+              ...result,
+              error: `Failed to delete ${result.failed} article(s).`,
+            },
+            { status: 500 },
+          )
+        }
+
+        return Response.json({
+          ...result,
+          message: `Deleted ${result.deleted} article(s).`,
+        })
+      },
+    },
+  ],
   hooks: {
     beforeChange: [setPublishedAtOnPublish],
     afterChange: [revalidateArticleAfterChange],

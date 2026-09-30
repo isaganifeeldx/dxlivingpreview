@@ -8,9 +8,11 @@
  *   npm run seed:articles-from-wp
  *   npm run seed:articles-from-wp -- --slug=before-you-sign-with-a-builder-checklist
  *   npm run seed:articles-from-wp -- --limit=1
+ *   npm run seed:articles-from-wp -- --all
+ *   npm run seed:articles-from-wp -- --limit=95
  *
  * Requires DATABASE_URI + PAYLOAD_SECRET and Blob or S3 (not local disk against remote DB).
- * Run `npm run seed:article-categories` first if categories are empty.
+ * Fetches WP categories first and upserts any missing ones into Payload.
  */
 import fs from 'node:fs'
 import os from 'node:os'
@@ -25,7 +27,10 @@ import {
   EXPERIMENTAL_TableFeature,
 } from '@payloadcms/richtext-lexical'
 import type { Payload } from 'payload'
-import { LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG } from '../src/lib/articles/categoryDefs'
+import {
+  FALLBACK_ARTICLE_CATEGORIES,
+  LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG,
+} from '../src/lib/articles/categoryDefs'
 import { getMediaStorageMode } from '../src/lib/cms/mediaStorage'
 
 loadDotenv({ path: '.env.local', quiet: true })
@@ -48,6 +53,14 @@ const WP_ORIGIN = (() => {
   }
 })()
 
+type WpCategory = {
+  id: number
+  slug: string
+  name: string
+  count?: number
+  parent?: number
+}
+
 type WpPost = {
   id: number
   slug: string
@@ -69,8 +82,16 @@ type WpPost = {
 function parseArgs(argv: string[]) {
   let slug = (process.env.WP_SEED_SLUG || '').trim()
   let limit = Math.max(1, Number(process.env.WP_SEED_LIMIT) || 1)
+  let all =
+    process.env.WP_SEED_ALL === '1' ||
+    process.env.WP_SEED_ALL === 'true' ||
+    process.env.WP_SEED_LIMIT === 'all'
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i]
+    if (arg === '--all') {
+      all = true
+      continue
+    }
     if (arg === '--slug' && argv[i + 1]) {
       slug = argv[++i].trim()
       continue
@@ -80,14 +101,24 @@ function parseArgs(argv: string[]) {
       continue
     }
     if (arg === '--limit' && argv[i + 1]) {
-      limit = Math.max(1, Number(argv[++i]) || 1)
+      const raw = argv[++i]
+      if (raw === 'all') {
+        all = true
+      } else {
+        limit = Math.max(1, Number(raw) || 1)
+      }
       continue
     }
     if (arg.startsWith('--limit=')) {
-      limit = Math.max(1, Number(arg.slice('--limit='.length)) || 1)
+      const raw = arg.slice('--limit='.length)
+      if (raw === 'all') {
+        all = true
+      } else {
+        limit = Math.max(1, Number(raw) || 1)
+      }
     }
   }
-  return { slug, limit }
+  return { slug, limit, all }
 }
 
 function databaseLooksRemote(uri: string): boolean {
@@ -174,12 +205,128 @@ function estimateReadTime(html: string) {
   return `${Math.max(1, Math.round(words / 200))} min read`
 }
 
-function mapCategorySlug(categoryIds: number[] = []) {
-  for (const id of categoryIds) {
-    const mapped = LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG[String(id)]
-    if (mapped) return mapped
+function fallbackSortOrder(slug: string): number {
+  const known = FALLBACK_ARTICLE_CATEGORIES.find((category) => category.id === slug)
+  return known?.sortOrder ?? 100
+}
+
+/** Skip WP system/empty buckets that should not become listing tabs. */
+function shouldSkipWpCategory(category: WpCategory): boolean {
+  const slug = category.slug?.trim().toLowerCase() || ''
+  if (!slug || slug === 'uncategorized') return true
+  if (category.id === 1) return true
+  return false
+}
+
+async function fetchAllWpCategories(): Promise<WpCategory[]> {
+  const all: WpCategory[] = []
+  let page = 1
+  let totalPages = 1
+
+  while (page <= totalPages) {
+    const url = `${WP_API_BASE}/categories?per_page=100&page=${page}&hide_empty=false&_fields=id,slug,name,count,parent`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`WP categories fetch failed (${response.status}): ${url}`)
+    }
+    const batch = (await response.json()) as WpCategory[]
+    if (!Array.isArray(batch) || batch.length === 0) break
+    all.push(...batch)
+    totalPages = Number.parseInt(response.headers.get('X-WP-TotalPages') ?? '1', 10) || 1
+    page += 1
   }
-  return ''
+
+  return all
+}
+
+/**
+ * Upsert WP categories into Payload and return maps for article assignment.
+ * Prefer legacy id→slug when known so existing Payload slugs stay stable.
+ */
+async function syncWpCategoriesToPayload(payload: Payload): Promise<{
+  categoryIdBySlug: Map<string, number | string>
+  categoryIdByWpId: Map<number, number | string>
+}> {
+  const wpCategories = await fetchAllWpCategories()
+  const categoryIdBySlug = new Map<string, number | string>()
+  const categoryIdByWpId = new Map<number, number | string>()
+
+  console.log(`Fetched ${wpCategories.length} WP categories from ${WP_ORIGIN}`)
+
+  for (const wpCategory of wpCategories) {
+    if (shouldSkipWpCategory(wpCategory)) {
+      console.log(`Skipping WP category: ${wpCategory.slug} (id ${wpCategory.id})`)
+      continue
+    }
+
+    const preferredSlug =
+      LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG[String(wpCategory.id)] || wpCategory.slug.trim()
+    const name = textValue(wpCategory.name, preferredSlug)
+    const sortOrder = fallbackSortOrder(preferredSlug)
+
+    const existing = await payload.find({
+      collection: 'article-categories',
+      depth: 0,
+      limit: 1,
+      where: { slug: { equals: preferredSlug } },
+      overrideAccess: true,
+    })
+
+    const data = {
+      name,
+      slug: preferredSlug,
+      sortOrder,
+    }
+
+    let payloadId: number | string
+    if (existing.docs[0]) {
+      const updated = await payload.update({
+        collection: 'article-categories',
+        id: existing.docs[0].id,
+        data,
+        depth: 0,
+        overrideAccess: true,
+      })
+      payloadId = updated.id
+      console.log(`Updated category from WP: ${preferredSlug} (wp:${wpCategory.id})`)
+    } else {
+      const created = await payload.create({
+        collection: 'article-categories',
+        data,
+        depth: 0,
+        overrideAccess: true,
+      })
+      payloadId = created.id
+      console.log(`Created category from WP: ${preferredSlug} (wp:${wpCategory.id})`)
+    }
+
+    categoryIdBySlug.set(preferredSlug, payloadId)
+    categoryIdByWpId.set(wpCategory.id, payloadId)
+  }
+
+  if (categoryIdByWpId.size === 0) {
+    throw new Error('No usable WP categories were synced into Payload.')
+  }
+
+  return { categoryIdBySlug, categoryIdByWpId }
+}
+
+function resolveArticleCategoryId(
+  categoryIds: number[] = [],
+  categoryIdByWpId: Map<number, number | string>,
+  categoryIdBySlug: Map<string, number | string>,
+): number | string | null {
+  for (const wpId of categoryIds) {
+    const direct = categoryIdByWpId.get(wpId)
+    if (direct != null) return direct
+
+    const legacySlug = LEGACY_ARTICLE_CATEGORY_ID_TO_SLUG[String(wpId)]
+    if (legacySlug) {
+      const bySlug = categoryIdBySlug.get(legacySlug)
+      if (bySlug != null) return bySlug
+    }
+  }
+  return null
 }
 
 function collectImageUrls(html: string, featuredUrl: string): string[] {
@@ -312,17 +459,42 @@ async function fetchWpPostBySlug(slug: string): Promise<WpPost | null> {
 }
 
 async function fetchWpPosts(limit: number): Promise<WpPost[]> {
-  const url = `${WP_API_BASE}/posts?per_page=${limit}&page=1&status=publish&_embed=wp:featuredmedia`
+  const perPage = Math.min(100, Math.max(1, limit))
+  const url = `${WP_API_BASE}/posts?per_page=${perPage}&page=1&status=publish&_embed=wp:featuredmedia`
   const response = await fetch(url)
   if (!response.ok) {
     throw new Error(`WP fetch failed (${response.status}): ${url}`)
   }
   const posts = (await response.json()) as WpPost[]
-  return Array.isArray(posts) ? posts.filter((p) => p.slug) : []
+  return Array.isArray(posts) ? posts.filter((p) => p.slug).slice(0, limit) : []
+}
+
+/** Paginate WP REST until every published post is collected (WP caps per_page at 100). */
+async function fetchAllWpPosts(): Promise<WpPost[]> {
+  const all: WpPost[] = []
+  let page = 1
+  let totalPages = 1
+
+  while (page <= totalPages) {
+    const url = `${WP_API_BASE}/posts?per_page=100&page=${page}&status=publish&_embed=wp:featuredmedia`
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`WP fetch failed (${response.status}): ${url}`)
+    }
+    totalPages = Number.parseInt(response.headers.get('X-WP-TotalPages') ?? '1', 10) || 1
+    const posts = (await response.json()) as WpPost[]
+    if (Array.isArray(posts)) {
+      all.push(...posts.filter((p) => p.slug))
+    }
+    console.log(`Fetched WP posts page ${page}/${totalPages} (${all.length} so far)`)
+    page += 1
+  }
+
+  return all
 }
 
 async function main() {
-  const { slug, limit } = parseArgs(process.argv.slice(2))
+  const { slug, limit, all } = parseArgs(process.argv.slice(2))
   const { getPayload } = await import('payload')
   const { default: config } = await import('../src/payload.config')
 
@@ -334,7 +506,9 @@ async function main() {
 
   const posts = slug
     ? ([await fetchWpPostBySlug(slug)].filter(Boolean) as WpPost[])
-    : await fetchWpPosts(limit)
+    : all
+      ? await fetchAllWpPosts()
+      : await fetchWpPosts(limit)
 
   if (posts.length === 0) {
     throw new Error(
@@ -345,8 +519,15 @@ async function main() {
   }
 
   console.log(
-    `Seeding ${posts.length} WP article(s) from ${WP_ORIGIN}: ${posts.map((p) => p.slug).join(', ')}`,
+    `Seeding ${posts.length} WP article(s) from ${WP_ORIGIN}${all ? ' (--all)' : ''}`,
   )
+  if (posts.length <= 20) {
+    console.log(`Slugs: ${posts.map((p) => p.slug).join(', ')}`)
+  } else {
+    console.log(
+      `First/last: ${posts[0]?.slug} … ${posts[posts.length - 1]?.slug}`,
+    )
+  }
 
   const payload = await getPayload({ config })
 
@@ -358,23 +539,7 @@ async function main() {
     ],
   })
 
-  const categoryIdBySlug = new Map<string, number | string>()
-  const categoryDocs = await payload.find({
-    collection: 'article-categories',
-    depth: 0,
-    limit: 100,
-    overrideAccess: true,
-  })
-  for (const doc of categoryDocs.docs) {
-    const catSlug = typeof doc.slug === 'string' ? doc.slug.trim() : ''
-    if (catSlug) categoryIdBySlug.set(catSlug, doc.id)
-  }
-
-  if (categoryIdBySlug.size === 0) {
-    throw new Error(
-      'No article categories found. Run `npm run seed:article-categories` first.',
-    )
-  }
+  const { categoryIdBySlug, categoryIdByWpId } = await syncWpCategoriesToPayload(payload)
 
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'dxliving-wp-seed-'))
   const mediaByUrl = new Map<string, number | string>()
@@ -387,8 +552,11 @@ async function main() {
       const featuredUrl = normalizeMediaUrl(
         post._embedded?.['wp:featuredmedia']?.[0]?.source_url?.trim() || '',
       )
-      const categorySlug = mapCategorySlug(post.categories)
-      const categoryId = categorySlug ? categoryIdBySlug.get(categorySlug) : undefined
+      const categoryId = resolveArticleCategoryId(
+        post.categories,
+        categoryIdByWpId,
+        categoryIdBySlug,
+      )
 
       if (categoryId == null) {
         console.warn(
